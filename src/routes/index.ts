@@ -7,6 +7,7 @@ import { AgentController, processTransactionValidation, getTasksValidation } fro
 import { ConfigController, AdminConfigController, depositBankValidation, withdrawalBankValidation, templateValidation, languageValidation } from '../controllers/configController';
 import { UploadController } from '../controllers/uploadController';
 import * as UserManagementController from '../controllers/userManagementController';
+import { BettingSiteController } from '../controllers/bettingSiteController';
 import { authenticateToken, requireAdmin, requireAgentOrAdmin, requirePlayerOrAbove, optionalAuth } from '../middlewares/auth';
 import { publicRateLimit, transactionRateLimit, authRateLimit } from '../middlewares/index';
 import { fileUploadService } from '../services/fileUpload';
@@ -25,6 +26,7 @@ router.get('/config/welcome', ConfigController.getWelcomeMessage);
 router.get('/config/deposit-banks', ConfigController.getDepositBanks);
 router.get('/config/withdrawal-banks', ConfigController.getWithdrawalBanks);
 router.get('/config/languages', ConfigController.getLanguages);
+router.get('/config/betting-sites', BettingSiteController.getAllBettingSites);
 
 // Public player routes
 router.post('/players', publicRateLimit, createPlayerValidation, PlayerController.createPlayer);
@@ -73,6 +75,14 @@ router.put('/admin/users/:id', authenticateToken, requireAdmin, UserManagementCo
 router.delete('/admin/users/:id', authenticateToken, requireAdmin, UserManagementController.deleteUser);
 router.put('/admin/users/:id/password', authenticateToken, requireAdmin, UserManagementController.adminChangePassword);
 router.put('/admin/users/:id/toggle-status', authenticateToken, requireAdmin, UserManagementController.toggleUserStatus);
+
+// Betting Sites Management routes (Admin only)
+router.get('/admin/betting-sites', authenticateToken, requireAdmin, BettingSiteController.getAllBettingSites);
+router.get('/admin/betting-sites/:id', authenticateToken, requireAdmin, BettingSiteController.getBettingSiteById);
+router.post('/admin/betting-sites', authenticateToken, requireAdmin, BettingSiteController.createBettingSite);
+router.put('/admin/betting-sites/:id', authenticateToken, requireAdmin, BettingSiteController.updateBettingSite);
+router.delete('/admin/betting-sites/:id', authenticateToken, requireAdmin, BettingSiteController.deleteBettingSite);
+router.put('/admin/betting-sites/:id/toggle-status', authenticateToken, requireAdmin, BettingSiteController.toggleBettingSiteStatus);
 
 // Agent routes
 router.get('/agent/tasks', authenticateToken, requireAgentOrAdmin, getTasksValidation, AgentController.getTasks);

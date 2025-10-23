@@ -78,6 +78,16 @@ export const schemas = {
       then: Joi.required(),
       otherwise: Joi.optional(),
     }),
+    bettingSiteId: Joi.number().when('type', {
+      is: 'DEPOSIT',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    }),
+    playerSiteId: Joi.string().max(100).when('type', {
+      is: 'DEPOSIT',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    }),
   }),
 
   assignTransaction: Joi.object({

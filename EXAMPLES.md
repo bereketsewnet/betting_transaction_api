@@ -101,7 +101,9 @@ curl -X POST http://localhost:3000/api/v1/transactions \
     "type": "DEPOSIT",
     "amount": 100.00,
     "currency": "USD",
-    "depositBankId": 1
+    "depositBankId": 1,
+    "bettingSiteId": 1,
+    "playerSiteId": "player123"
   }'
 ```
 
@@ -147,6 +149,8 @@ curl -X POST http://localhost:3000/api/v1/transactions \
   -F "amount=100.00" \
   -F "currency=USD" \
   -F "depositBankId=1" \
+  -F "bettingSiteId=1" \
+  -F "playerSiteId=player123" \
   -F "screenshot=@/path/to/screenshot.png"
 ```
 
@@ -273,6 +277,120 @@ curl -X GET http://localhost:3000/api/v1/config/withdrawal-banks
 
 ```bash
 curl -X GET http://localhost:3000/api/v1/config/languages
+```
+
+### 5. Get Betting Sites
+
+```bash
+curl -X GET http://localhost:3000/api/v1/config/betting-sites
+```
+
+**Response:**
+```json
+{
+  "bettingSites": [
+    {
+      "id": 1,
+      "name": "Arada Betting",
+      "description": "Arada Betting Platform - Sports betting and casino games",
+      "website": "https://arada-betting.com",
+      "isActive": true,
+      "createdAt": "2023-12-01T10:00:00.000Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### 6. Get Active Betting Sites Only
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/config/betting-sites?isActive=true"
+```
+
+## Betting Sites Management (Admin Only)
+
+### 1. Get All Betting Sites (Admin)
+
+```bash
+curl -X GET http://localhost:3000/api/v1/admin/betting-sites \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 2. Get Betting Site by ID (Admin)
+
+```bash
+curl -X GET http://localhost:3000/api/v1/admin/betting-sites/1 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 3. Create Betting Site
+
+```bash
+curl -X POST http://localhost:3000/api/v1/admin/betting-sites \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "New Betting Site",
+    "description": "A new betting platform for sports and casino games",
+    "website": "https://new-betting-site.com",
+    "isActive": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "message": "Betting site created successfully",
+  "bettingSite": {
+    "id": 9,
+    "name": "New Betting Site",
+    "description": "A new betting platform for sports and casino games",
+    "website": "https://new-betting-site.com",
+    "isActive": true,
+    "createdAt": "2023-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### 4. Update Betting Site
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/admin/betting-sites/1 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Betting Site",
+    "description": "Updated description for the betting platform",
+    "website": "https://updated-betting-site.com",
+    "isActive": true
+  }'
+```
+
+### 5. Toggle Betting Site Status
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/admin/betting-sites/1/toggle-status \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "message": "Betting site deactivated successfully",
+  "bettingSite": {
+    "id": 1,
+    "name": "Arada Betting",
+    "isActive": false
+  }
+}
+```
+
+### 6. Delete Betting Site
+
+```bash
+curl -X DELETE http://localhost:3000/api/v1/admin/betting-sites/1 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ## User Management (Admin Only)

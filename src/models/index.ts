@@ -3,6 +3,7 @@ import { User } from './User';
 import { PlayerProfile } from './PlayerProfile';
 import { DepositBank } from './DepositBank';
 import { WithdrawalBank } from './WithdrawalBank';
+import { BettingSite } from './BettingSite';
 import { TransactionStatus } from './TransactionStatus';
 import { Transaction } from './Transaction';
 import { TransactionEvidence } from './TransactionEvidence';
@@ -37,6 +38,9 @@ DepositBank.hasMany(Transaction, { foreignKey: 'depositBankId', as: 'depositTran
 Transaction.belongsTo(WithdrawalBank, { foreignKey: 'withdrawalBankId', as: 'withdrawalBank' });
 WithdrawalBank.hasMany(Transaction, { foreignKey: 'withdrawalBankId', as: 'withdrawalTransactions' });
 
+Transaction.belongsTo(BettingSite, { foreignKey: 'bettingSiteId', as: 'bettingSite' });
+BettingSite.hasMany(Transaction, { foreignKey: 'bettingSiteId', as: 'transactions' });
+
 TransactionEvidence.belongsTo(Transaction, { foreignKey: 'transactionId', as: 'transaction' });
 Transaction.hasMany(TransactionEvidence, { foreignKey: 'transactionId', as: 'evidence' });
 
@@ -64,6 +68,7 @@ export {
   PlayerProfile,
   DepositBank,
   WithdrawalBank,
+  BettingSite,
   TransactionStatus,
   Transaction,
   TransactionEvidence,

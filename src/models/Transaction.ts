@@ -13,6 +13,8 @@ export interface TransactionAttributes {
   withdrawalBankId?: number;
   withdrawalAddress?: string;
   screenshotUrl?: string;
+  bettingSiteId?: number;
+  playerSiteId?: string;
   requestedAt: Date;
   assignedAgentId?: number;
   statusId: number;
@@ -23,7 +25,7 @@ export interface TransactionAttributes {
   updatedAt?: Date;
 }
 
-export interface TransactionCreationAttributes extends Optional<TransactionAttributes, 'id' | 'userId' | 'depositBankId' | 'withdrawalBankId' | 'withdrawalAddress' | 'screenshotUrl' | 'assignedAgentId' | 'adminNotes' | 'agentNotes' | 'rating' | 'createdAt' | 'updatedAt'> {}
+export interface TransactionCreationAttributes extends Optional<TransactionAttributes, 'id' | 'userId' | 'depositBankId' | 'withdrawalBankId' | 'withdrawalAddress' | 'screenshotUrl' | 'bettingSiteId' | 'playerSiteId' | 'assignedAgentId' | 'adminNotes' | 'agentNotes' | 'rating' | 'createdAt' | 'updatedAt'> {}
 
 export class Transaction extends Model<TransactionAttributes, TransactionCreationAttributes> implements TransactionAttributes {
   public id!: number;
@@ -37,6 +39,8 @@ export class Transaction extends Model<TransactionAttributes, TransactionCreatio
   public withdrawalBankId?: number;
   public withdrawalAddress?: string;
   public screenshotUrl?: string;
+  public bettingSiteId?: number;
+  public playerSiteId?: string;
   public requestedAt!: Date;
   public assignedAgentId?: number;
   public statusId!: number;
@@ -51,6 +55,7 @@ export class Transaction extends Model<TransactionAttributes, TransactionCreatio
   public status?: any;
   public depositBank?: any;
   public withdrawalBank?: any;
+  public bettingSite?: any;
   public assignedAgent?: any;
   public user?: any;
   public evidence?: any[];
@@ -128,6 +133,20 @@ Transaction.init(
       type: DataTypes.STRING(500),
       allowNull: true,
       field: 'screenshot_url',
+    },
+    bettingSiteId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: 'betting_site_id',
+      references: {
+        model: 'betting_sites',
+        key: 'id',
+      },
+    },
+    playerSiteId: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'player_site_id',
     },
     requestedAt: {
       type: DataTypes.DATE,

@@ -360,7 +360,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"playerUuid\": \"{{playerUuid}}\",\n  \"type\": \"DEPOSIT\",\n  \"amount\": 100.00,\n  \"currency\": \"USD\",\n  \"depositBankId\": 1\n}"
+              "raw": "{\n  \"playerUuid\": \"{{playerUuid}}\",\n  \"type\": \"DEPOSIT\",\n  \"amount\": 100.00,\n  \"currency\": \"USD\",\n  \"depositBankId\": 1,\n  \"bettingSiteId\": 1,\n  \"playerSiteId\": \"player123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/transactions",
@@ -435,6 +435,16 @@
                 {
                   "key": "depositBankId",
                   "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "bettingSiteId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "playerSiteId",
+                  "value": "player123",
                   "type": "text"
                 },
                 {
@@ -1299,6 +1309,168 @@
                   "value": "10"
                 }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Betting Sites Management",
+      "item": [
+        {
+          "name": "Get All Betting Sites (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/config/betting-sites",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "betting-sites"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Betting Sites",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/config/betting-sites?isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "betting-sites"],
+              "query": [
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Betting Site by ID (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/config/betting-sites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "betting-sites", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Betting Sites (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites"]
+            }
+          }
+        },
+        {
+          "name": "Get Betting Site by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Betting Site",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Betting Site\",\n  \"description\": \"A new betting platform for sports and casino games\",\n  \"website\": \"https://new-betting-site.com\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites"]
+            }
+          }
+        },
+        {
+          "name": "Update Betting Site",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Betting Site\",\n  \"description\": \"Updated description for the betting platform\",\n  \"website\": \"https://updated-betting-site.com\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites", "1"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Betting Site Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites/1/toggle-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites", "1", "toggle-status"]
+            }
+          }
+        },
+        {
+          "name": "Delete Betting Site",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/betting-sites/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "betting-sites", "1"]
             }
           }
         }
