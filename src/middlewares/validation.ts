@@ -96,6 +96,7 @@ export const schemas = {
   }),
 
   transactionFilters: Joi.object({
+    playerUuid: Joi.string().uuid().optional(),
     dateRange: Joi.string().optional(),
     status: Joi.string().optional(),
     agent: Joi.number().optional(),

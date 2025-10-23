@@ -275,6 +275,225 @@ curl -X GET http://localhost:3000/api/v1/config/withdrawal-banks
 curl -X GET http://localhost:3000/api/v1/config/languages
 ```
 
+## User Management (Admin Only)
+
+### 1. Register New User
+
+```bash
+curl -X POST http://localhost:3000/api/v1/admin/users \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newadmin@example.com",
+    "password": "NewAdminPass123!",
+    "displayName": "New Administrator",
+    "roleId": 1,
+    "isActive": true
+  }'
+```
+
+**Response:**
+```json
+{
+  "message": "User created successfully",
+  "user": {
+    "id": 2,
+    "userUuid": "550e8400-e29b-41d4-a716-446655440002",
+    "username": "newadmin@example.com",
+    "displayName": "New Administrator",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2023-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### 2. Get All Users
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/admin/users?page=1&limit=20&role=1&search=admin&isActive=true" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "users": [
+    {
+      "id": 1,
+      "userUuid": "550e8400-e29b-41d4-a716-446655440001",
+      "username": "admin@example.com",
+      "displayName": "System Administrator",
+      "isActive": true,
+      "role": {
+        "id": 1,
+        "name": "admin",
+        "description": "System Administrator"
+      },
+      "createdAt": "2023-12-01T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "pages": 1
+  },
+  "statistics": {
+    "totalUsers": 1,
+    "roleDistribution": [
+      {
+        "role": "admin",
+        "count": 1
+      }
+    ]
+  }
+}
+```
+
+### 3. Get User by ID
+
+```bash
+curl -X GET http://localhost:3000/api/v1/admin/users/2 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 4. Update User
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/admin/users/2 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "updatedadmin@example.com",
+    "displayName": "Updated Administrator",
+    "roleId": 1,
+    "isActive": true
+  }'
+```
+
+### 5. Change User Password
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/admin/users/2/password \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "newPassword": "NewSecurePassword123!"
+  }'
+```
+
+### 6. Toggle User Status
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/admin/users/2/toggle-status \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "message": "User deactivated successfully",
+  "user": {
+    "id": 2,
+    "username": "updatedadmin@example.com",
+    "isActive": false
+  }
+}
+```
+
+### 7. Delete User
+
+```bash
+curl -X DELETE http://localhost:3000/api/v1/admin/users/2 \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 8. Get User Statistics
+
+```bash
+curl -X GET http://localhost:3000/api/v1/admin/users/statistics \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "statistics": {
+    "totalUsers": 5,
+    "activeUsers": 4,
+    "inactiveUsers": 1,
+    "recentUsers": 2,
+    "roleDistribution": [
+      {
+        "role": "admin",
+        "count": 2
+      },
+      {
+        "role": "agent",
+        "count": 3
+      }
+    ]
+  }
+}
+```
+
+### 9. Get All Roles
+
+```bash
+curl -X GET http://localhost:3000/api/v1/admin/roles \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Response:**
+```json
+{
+  "roles": [
+    {
+      "id": 1,
+      "name": "admin",
+      "description": "System Administrator",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "name": "agent",
+      "description": "Customer Support Agent",
+      "isActive": true
+    }
+  ]
+}
+```
+
+### 10. Create Agent User
+
+```bash
+curl -X POST http://localhost:3000/api/v1/admin/users \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newagent@example.com",
+    "password": "AgentPass123!",
+    "displayName": "New Agent",
+    "roleId": 2,
+    "isActive": true
+  }'
+```
+
+### 11. Get Agents Only
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/admin/users?role=2&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 12. Search Users
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/admin/users?search=admin&page=1&limit=10" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
 ## Admin Configuration Management
 
 ### 1. Create Deposit Bank

@@ -6,6 +6,7 @@ import { AdminController, assignTransactionValidation, updateTransactionStatusVa
 import { AgentController, processTransactionValidation, getTasksValidation } from '../controllers/agentController';
 import { ConfigController, AdminConfigController, depositBankValidation, withdrawalBankValidation, templateValidation, languageValidation } from '../controllers/configController';
 import { UploadController } from '../controllers/uploadController';
+import * as UserManagementController from '../controllers/userManagementController';
 import { authenticateToken, requireAdmin, requireAgentOrAdmin, requirePlayerOrAbove, optionalAuth } from '../middlewares/auth';
 import { publicRateLimit, transactionRateLimit, authRateLimit } from '../middlewares/index';
 import { fileUploadService } from '../services/fileUpload';
@@ -61,6 +62,17 @@ router.get('/admin/languages', authenticateToken, requireAdmin, AdminConfigContr
 router.post('/admin/languages', authenticateToken, requireAdmin, languageValidation, AdminConfigController.createLanguage);
 router.put('/admin/languages/:code', authenticateToken, requireAdmin, languageValidation, AdminConfigController.updateLanguage);
 router.delete('/admin/languages/:code', authenticateToken, requireAdmin, AdminConfigController.deleteLanguage);
+
+// User Management routes (Admin only)
+router.get('/admin/roles', authenticateToken, requireAdmin, UserManagementController.getAllRoles);
+router.get('/admin/users/statistics', authenticateToken, requireAdmin, UserManagementController.getUserStatistics);
+router.post('/admin/users', authenticateToken, requireAdmin, UserManagementController.registerUser);
+router.get('/admin/users', authenticateToken, requireAdmin, UserManagementController.getAllUsers);
+router.get('/admin/users/:id', authenticateToken, requireAdmin, UserManagementController.getUserById);
+router.put('/admin/users/:id', authenticateToken, requireAdmin, UserManagementController.updateUser);
+router.delete('/admin/users/:id', authenticateToken, requireAdmin, UserManagementController.deleteUser);
+router.put('/admin/users/:id/password', authenticateToken, requireAdmin, UserManagementController.adminChangePassword);
+router.put('/admin/users/:id/toggle-status', authenticateToken, requireAdmin, UserManagementController.toggleUserStatus);
 
 // Agent routes
 router.get('/agent/tasks', authenticateToken, requireAgentOrAdmin, getTasksValidation, AgentController.getTasks);
