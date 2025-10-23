@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Transaction, TransactionStatus, User, PlayerProfile, DepositBank, WithdrawalBank, AuditLog, Role } from '../models';
+import { Transaction, TransactionStatus, User, PlayerProfile, DepositBank, WithdrawalBank, BettingSite, AuditLog, Role } from '../models';
 import { validate, schemas, validateQuery } from '../middlewares/validation';
 import { socketService } from '../services/socketService';
 import { telegramService } from '../services/telegramService';
@@ -83,6 +83,11 @@ export class AdminController {
             required: false,
             attributes: ['id', 'username', 'displayName'],
           },
+          {
+            model: BettingSite,
+            as: 'bettingSite',
+            required: false,
+          },
         ],
         order: [['createdAt', 'DESC']],
         limit: Number(limit),
@@ -101,6 +106,9 @@ export class AdminController {
           withdrawalBank: transaction.withdrawalBank,
           withdrawalAddress: transaction.withdrawalAddress,
           screenshotUrl: transaction.screenshotUrl,
+          bettingSiteId: transaction.bettingSiteId,
+          playerSiteId: transaction.playerSiteId,
+          bettingSite: transaction.bettingSite,
           requestedAt: transaction.requestedAt,
           assignedAgent: transaction.assignedAgent,
           adminNotes: transaction.adminNotes,
