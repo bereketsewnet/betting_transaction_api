@@ -1,0 +1,21 @@
+# Uploads directory
+
+This directory stores uploaded files when using local storage instead of S3.
+
+## Structure
+
+- Screenshots from transaction submissions
+- Evidence files uploaded by agents
+- Other user-uploaded files
+
+## Security
+
+- Only image files (PNG, JPG, JPEG) are allowed
+- Maximum file size: 8MB
+- Files are served with appropriate MIME types
+- Access is controlled by authentication middleware
+
+## Configuration
+
+Set `LOCAL_UPLOAD_PATH` environment variable to change the upload directory.
+Default: `./uploads`
