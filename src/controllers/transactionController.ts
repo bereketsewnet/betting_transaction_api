@@ -45,7 +45,7 @@ export class TransactionController {
       const transaction = await Transaction.create({
         transactionUuid: uuidv4(),
         playerProfileId: playerProfile.id,
-        userId: req.user?.userId, // Optional user association
+        userId: (req as any).user?.id || null, // Optional user association
         type,
         amount: parseFloat(amount),
         currency: currency || 'USD',
@@ -127,7 +127,31 @@ export class TransactionController {
       });
     } catch (error) {
       console.error('Create transaction error:', error);
-      res.status(500).json({ error: 'Failed to create transaction' });
+      
+      // Handle specific database errors
+      if (error instanceof Error) {
+        if (error.message.includes('Validation error')) {
+          res.status(400).json({
+            error: 'Validation failed',
+            message: error.message
+          });
+          return;
+        }
+        
+        if (error.message.includes('Duplicate entry')) {
+          res.status(409).json({
+            error: 'Transaction already exists',
+            message: 'A transaction with this data already exists'
+          });
+          return;
+        }
+      }
+      
+      res.status(500).json({
+        error: 'Failed to create transaction',
+        message: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
+      });
     }
   }
 

@@ -30,7 +30,7 @@ class FileUploadService {
     };
 
     // Initialize S3 if credentials are provided
-    if (process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY) {
+    if (process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY && process.env.S3_BUCKET) {
       this.s3 = new AWS.S3({
         accessKeyId: process.env.S3_ACCESS_KEY_ID,
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
@@ -81,7 +81,12 @@ class FileUploadService {
    */
   async uploadFile(file: Express.Multer.File): Promise<UploadResult> {
     if (this.s3) {
-      return this.uploadToS3(file);
+      try {
+        return await this.uploadToS3(file);
+      } catch (error) {
+        console.warn('S3 upload failed, falling back to local storage:', error);
+        return this.uploadLocally(file);
+      }
     } else {
       return this.uploadLocally(file);
     }
@@ -120,14 +125,12 @@ class FileUploadService {
    * Upload file locally
    */
   private async uploadLocally(file: Express.Multer.File): Promise<UploadResult> {
-    const filename = `${uuidv4()}${path.extname(file.originalname)}`;
-    const filePath = path.join(this.config.uploadPath, filename);
+    // When using diskStorage, the file is already saved to disk
+    // We just need to return the file info
+    const filename = path.basename(file.path);
+    const url = `${process.env.API_BASE_URL || 'http://localhost:3000'}/uploads/${filename}`;
     
     try {
-      await fs.promises.writeFile(filePath, file.buffer);
-      
-      const url = `${process.env.API_BASE_URL || 'http://localhost:3000'}/uploads/${filename}`;
-      
       return {
         filename,
         originalName: file.originalname,
