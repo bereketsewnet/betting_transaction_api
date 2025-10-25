@@ -1,31 +1,46 @@
-# Betting Payment Manager API - Example Requests
+# Betting Payment Manager API - Complete Examples
 
-This file contains example curl requests for testing the API endpoints.
+Complete API documentation with all endpoints, request/response examples, and error cases.
 
-## Prerequisites
+**Base URL:** `http://localhost:3000/api/v1`
 
-1. Start the API server: `npm run start:dev` or `docker-compose up`
-2. Run database migrations and seeds: `npm run migrate && npm run db:seed`
+---
+
+## Table of Contents
+1. [Authentication](#authentication)
+2. [Public Configuration](#public-configuration)
+3. [Player Management](#player-management)
+4. [Transaction Management](#transaction-management)
+5. [Admin - Transaction Management](#admin---transaction-management)
+6. [Admin - User Management](#admin---user-management)
+7. [Admin - Configuration Management](#admin---configuration-management)
+8. [Admin - Betting Sites Management](#admin---betting-sites-management)
+9. [Agent Operations](#agent-operations)
+10. [File Upload](#file-upload)
+11. [Error Responses](#error-responses)
+
+---
 
 ## Authentication
 
-### 1. Login as Admin
+### 1. Login (Admin/Agent)
 
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin@example.com",
-    "password": "AdminPass123!"
-  }'
+**Endpoint:** `POST /auth/login`
+
+**Request Body:**
+```json
+{
+  "username": "admin@example.com",
+  "password": "AdminPass123!"
+}
 ```
 
-**Response:**
+**Success Response (200):**
 ```json
 {
   "message": "Login successful",
   "user": {
-    "id": 1,
+    "id": 11,
     "username": "admin@example.com",
     "email": "admin@example.com",
     "displayName": "System Administrator",
@@ -37,255 +52,237 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
 }
 ```
 
+**Error Response (401):**
+```json
+{
+  "error": "Invalid credentials"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": ["\"username\" is required"]
+}
+```
+
+---
+
 ### 2. Refresh Token
 
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
-  }'
-```
+**Endpoint:** `POST /auth/refresh`
 
-### 3. Get Profile
-
-```bash
-curl -X GET http://localhost:3000/api/v1/auth/profile \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-## Player Management
-
-### 1. Create Player Profile
-
-```bash
-curl -X POST http://localhost:3000/api/v1/players \
-  -H "Content-Type: application/json" \
-  -d '{
-    "telegramId": "123456789",
-    "telegramUsername": "player123",
-    "languageCode": "en"
-  }'
-```
-
-**Response:**
+**Request Body:**
 ```json
 {
-  "message": "Player profile created successfully",
-  "player": {
-    "id": 1,
-    "playerUuid": "550e8400-e29b-41d4-a716-446655440001",
-    "telegramId": "123456789",
-    "telegramUsername": "player123",
-    "languageCode": "en",
-    "lastActive": "2023-12-01T10:00:00.000Z"
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Token refreshed successfully",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 2592000
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "error": "Invalid or expired refresh token"
+}
+```
+
+---
+
+### 3. Logout
+
+**Endpoint:** `POST /auth/logout`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+---
+
+### 4. Get Profile
+
+**Endpoint:** `GET /auth/profile`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "user": {
+    "id": 11,
+    "username": "admin@example.com",
+    "email": "admin@example.com",
+    "displayName": "System Administrator",
+    "role": "admin",
+    "isActive": true,
+    "createdAt": "2025-10-25T11:56:17.000Z"
   }
 }
 ```
 
-### 2. Get Player by UUID
-
-```bash
-curl -X GET http://localhost:3000/api/v1/players/550e8400-e29b-41d4-a716-446655440001
-```
-
-## Transaction Management
-
-### 1. Create Deposit Transaction
-
-```bash
-curl -X POST http://localhost:3000/api/v1/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "playerUuid": "550e8400-e29b-41d4-a716-446655440001",
-    "type": "DEPOSIT",
-    "amount": 100.00,
-    "currency": "USD",
-    "depositBankId": 1,
-    "bettingSiteId": 1,
-    "playerSiteId": "player123"
-  }'
-```
-
-**Response:**
+**Error Response (401):**
 ```json
 {
-  "message": "Transaction created successfully",
-  "transaction": {
-    "id": 1,
-    "transactionUuid": "550e8400-e29b-41d4-a716-446655440002",
-    "type": "DEPOSIT",
-    "amount": "100.00",
-    "currency": "USD",
-    "status": "Pending",
-    "screenshotUrl": "",
-    "requestedAt": "2023-12-01T10:00:00.000Z",
-    "createdAt": "2023-12-01T10:00:00.000Z"
-  }
+  "error": "Access token required"
 }
 ```
 
-### 2. Create Withdrawal Transaction
+---
 
-```bash
-curl -X POST http://localhost:3000/api/v1/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "playerUuid": "550e8400-e29b-41d4-a716-446655440001",
-    "type": "WITHDRAW",
-    "amount": 50.00,
-    "currency": "USD",
-    "withdrawalBankId": 1,
-    "withdrawalAddress": "test-address-123"
-  }'
+### 5. Change Password
+
+**Endpoint:** `PUT /auth/change-password`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
-### 3. Create Transaction with File Upload
-
-```bash
-curl -X POST http://localhost:3000/api/v1/transactions \
-  -F "playerUuid=550e8400-e29b-41d4-a716-446655440001" \
-  -F "type=DEPOSIT" \
-  -F "amount=100.00" \
-  -F "currency=USD" \
-  -F "depositBankId=1" \
-  -F "bettingSiteId=1" \
-  -F "playerSiteId=player123" \
-  -F "screenshot=@/path/to/screenshot.png"
+**Request Body:**
+```json
+{
+  "currentPassword": "AdminPass123!",
+  "newPassword": "NewAdminPass123!"
+}
 ```
 
-### 4. Get Player Transactions
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/transactions?playerUuid=550e8400-e29b-41d4-a716-446655440001&page=1&limit=10"
+**Success Response (200):**
+```json
+{
+  "message": "Password changed successfully"
+}
 ```
 
-### 5. Get Transaction Details
-
-```bash
-curl -X GET http://localhost:3000/api/v1/transactions/1?player_uuid=550e8400-e29b-41d4-a716-446655440001
+**Error Response (401):**
+```json
+{
+  "error": "Current password is incorrect"
+}
 ```
 
-## Admin Operations
+---
 
-### 1. Get All Transactions
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/admin/transactions?page=1&limit=20" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### 2. Assign Transaction to Agent
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/transactions/1/assign \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": 2
-  }'
-```
-
-### 3. Update Transaction Status
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/transactions/1/status \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "SUCCESS",
-    "adminNotes": "Transaction completed successfully"
-  }'
-```
-
-### 4. Get Agents with Statistics
-
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/agents \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-## Agent Operations
-
-### 1. Login as Agent
-
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "agent@example.com",
-    "password": "AgentPass123!"
-  }'
-```
-
-### 2. Get Assigned Tasks
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/agent/tasks?status=PENDING" \
-  -H "Authorization: Bearer AGENT_ACCESS_TOKEN"
-```
-
-### 3. Process Transaction
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/agent/transactions/1/process \
-  -H "Authorization: Bearer AGENT_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "status": "SUCCESS",
-    "agentNotes": "Payment verified and processed",
-    "evidenceUrl": "https://example.com/receipt.jpg"
-  }'
-```
-
-### 4. Upload Evidence
-
-```bash
-curl -X POST http://localhost:3000/api/v1/agent/evidence \
-  -H "Authorization: Bearer AGENT_ACCESS_TOKEN" \
-  -F "file=@/path/to/evidence.png"
-```
-
-### 5. Get Agent Statistics
-
-```bash
-curl -X GET http://localhost:3000/api/v1/agent/stats \
-  -H "Authorization: Bearer AGENT_ACCESS_TOKEN"
-```
-
-## Configuration Endpoints
+## Public Configuration
 
 ### 1. Get Welcome Message
 
-```bash
-curl -X GET "http://localhost:3000/api/v1/config/welcome?lang=en"
+**Endpoint:** `GET /config/welcome?lang=en`
+
+**Success Response (200):**
+```json
+{
+  "message": "Welcome to Betting Payment Manager! Please choose your preferred language to continue.",
+  "languageCode": "en"
+}
 ```
+
+---
 
 ### 2. Get Deposit Banks
 
-```bash
-curl -X GET http://localhost:3000/api/v1/config/deposit-banks
+**Endpoint:** `GET /config/deposit-banks`
+
+**Success Response (200):**
+```json
+{
+  "depositBanks": [
+    {
+      "id": 1,
+      "bankName": "Chase Bank",
+      "accountNumber": "1234567890",
+      "accountName": "Betting Payment Manager",
+      "notes": "Primary deposit account",
+      "isActive": true
+    }
+  ]
+}
 ```
+
+---
 
 ### 3. Get Withdrawal Banks
 
-```bash
-curl -X GET http://localhost:3000/api/v1/config/withdrawal-banks
+**Endpoint:** `GET /config/withdrawal-banks`
+
+**Success Response (200):**
+```json
+{
+  "withdrawalBanks": [
+    {
+      "id": 1,
+      "bankName": "Chase Bank",
+      "requiredFields": [
+        {
+          "name": "account_number",
+          "label": "Account Number",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "notes": "Primary withdrawal bank",
+      "isActive": true
+    }
+  ]
+}
 ```
+
+---
 
 ### 4. Get Languages
 
-```bash
-curl -X GET http://localhost:3000/api/v1/config/languages
+**Endpoint:** `GET /config/languages`
+
+**Success Response (200):**
+```json
+{
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "isActive": true
+    },
+    {
+      "code": "es",
+      "name": "Spanish",
+      "isActive": true
+    }
+  ]
+}
 ```
+
+---
 
 ### 5. Get Betting Sites
 
-```bash
-curl -X GET http://localhost:3000/api/v1/config/betting-sites
-```
+**Endpoint:** `GET /config/betting-sites`
 
-**Response:**
+**Query Parameters:**
+- `isActive` (optional): Filter by active status (true/false)
+
+**Success Response (200):**
 ```json
 {
   "bettingSites": [
@@ -295,173 +292,694 @@ curl -X GET http://localhost:3000/api/v1/config/betting-sites
       "description": "Arada Betting Platform - Sports betting and casino games",
       "website": "https://arada-betting.com",
       "isActive": true,
-      "createdAt": "2023-12-01T10:00:00.000Z"
+      "createdAt": "2025-10-25T11:22:13.000Z",
+      "updatedAt": "2025-10-25T11:22:13.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Bética Betting",
+      "description": "Bética Betting Platform - Online sports betting",
+      "website": "https://betica-betting.com",
+      "isActive": true,
+      "createdAt": "2025-10-25T11:22:13.000Z",
+      "updatedAt": "2025-10-25T11:22:13.000Z"
     }
   ],
-  "total": 1
+  "total": 2
 }
 ```
 
-### 6. Get Active Betting Sites Only
+---
 
-```bash
-curl -X GET "http://localhost:3000/api/v1/config/betting-sites?isActive=true"
-```
+## Player Management
 
-## Betting Sites Management (Admin Only)
+### 1. Create Player Profile
 
-### 1. Get All Betting Sites (Admin)
+**Endpoint:** `POST /players`
 
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/betting-sites \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### 2. Get Betting Site by ID (Admin)
-
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/betting-sites/1 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### 3. Create Betting Site
-
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/betting-sites \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "New Betting Site",
-    "description": "A new betting platform for sports and casino games",
-    "website": "https://new-betting-site.com",
-    "isActive": true
-  }'
-```
-
-**Response:**
+**Request Body:**
 ```json
 {
-  "message": "Betting site created successfully",
-  "bettingSite": {
-    "id": 9,
-    "name": "New Betting Site",
-    "description": "A new betting platform for sports and casino games",
-    "website": "https://new-betting-site.com",
-    "isActive": true,
-    "createdAt": "2023-12-01T10:00:00.000Z"
-  }
+  "telegramId": "123456789",
+  "telegramUsername": "player123",
+  "languageCode": "en"
 }
 ```
 
-### 4. Update Betting Site
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/betting-sites/1 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Updated Betting Site",
-    "description": "Updated description for the betting platform",
-    "website": "https://updated-betting-site.com",
-    "isActive": true
-  }'
-```
-
-### 5. Toggle Betting Site Status
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/betting-sites/1/toggle-status \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Response:**
+**Success Response (201):**
 ```json
 {
-  "message": "Betting site deactivated successfully",
-  "bettingSite": {
+  "message": "Player profile created successfully",
+  "player": {
     "id": 1,
-    "name": "Arada Betting",
-    "isActive": false
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "123456789",
+    "telegramUsername": "player123",
+    "languageCode": "en",
+    "lastActive": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
   }
 }
 ```
 
-### 6. Delete Betting Site
-
-```bash
-curl -X DELETE http://localhost:3000/api/v1/admin/betting-sites/1 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-## User Management (Admin Only)
-
-### 1. Register New User
-
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/users \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "newadmin@example.com",
-    "password": "NewAdminPass123!",
-    "displayName": "New Administrator",
-    "roleId": 1,
-    "isActive": true
-  }'
-```
-
-**Response:**
+**Error Response (409):**
 ```json
 {
-  "message": "User created successfully",
-  "user": {
+  "error": "Player already exists",
+  "message": "A player with this Telegram ID already exists"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": ["\"telegramId\" is required"]
+}
+```
+
+---
+
+### 2. Get Player by UUID
+
+**Endpoint:** `GET /players/:playerUuid`
+
+**Success Response (200):**
+```json
+{
+  "player": {
+    "id": 1,
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "123456789",
+    "telegramUsername": "player123",
+    "languageCode": "en",
+    "lastActive": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player not found"
+}
+```
+
+---
+
+### 3. Update Player Profile
+
+**Endpoint:** `PUT /players/:playerUuid`
+
+**Request Body:**
+```json
+{
+  "telegramUsername": "updatedplayer",
+  "languageCode": "es"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Player profile updated successfully",
+  "player": {
+    "id": 1,
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "123456789",
+    "telegramUsername": "updatedplayer",
+    "languageCode": "es",
+    "lastActive": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player not found"
+}
+```
+
+---
+
+## Transaction Management
+
+### 1. Create Deposit Transaction (JSON)
+
+**Endpoint:** `POST /transactions`
+
+**Request Body:**
+```json
+{
+  "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+  "type": "DEPOSIT",
+  "amount": 100.00,
+  "currency": "USD",
+  "depositBankId": 1,
+  "bettingSiteId": 1,
+  "playerSiteId": "player123"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Transaction created successfully",
+  "transaction": {
+    "id": 1,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+    "type": "DEPOSIT",
+    "amount": "100.00",
+    "currency": "USD",
+    "status": "Pending",
+    "screenshotUrl": null,
+    "bettingSiteId": 1,
+    "playerSiteId": "player123",
+    "requestedAt": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player not found"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    "\"bettingSiteId\" is required",
+    "\"playerSiteId\" is required"
+  ]
+}
+```
+
+---
+
+### 2. Create Withdrawal Transaction
+
+**Endpoint:** `POST /transactions`
+
+**Request Body:**
+```json
+{
+  "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+  "type": "WITHDRAW",
+  "amount": 50.00,
+  "currency": "USD",
+  "withdrawalBankId": 1,
+  "withdrawalAddress": "test-address-123"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Transaction created successfully",
+  "transaction": {
     "id": 2,
-    "userUuid": "550e8400-e29b-41d4-a716-446655440002",
-    "username": "newadmin@example.com",
-    "displayName": "New Administrator",
-    "role": "admin",
-    "isActive": true,
-    "createdAt": "2023-12-01T10:00:00.000Z"
+    "transactionUuid": "24068d99-fea9-412d-b4b1-01e3087bf4e2",
+    "type": "WITHDRAW",
+    "amount": "50.00",
+    "currency": "USD",
+    "status": "Pending",
+    "screenshotUrl": null,
+    "requestedAt": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
   }
 }
 ```
 
-### 2. Get All Users
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/admin/users?page=1&limit=20&role=1&search=admin&isActive=true" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Response:**
+**Error Response (400):**
 ```json
 {
-  "users": [
+  "error": "Validation failed",
+  "details": [
+    "\"withdrawalBankId\" is required",
+    "\"withdrawalAddress\" is required"
+  ]
+}
+```
+
+---
+
+### 3. Create Transaction with File Upload
+
+**Endpoint:** `POST /transactions`
+
+**Content-Type:** `multipart/form-data`
+
+**Form Data:**
+- `playerUuid`: e804346f-e513-4ae2-9cfa-7584c3ea1698
+- `type`: DEPOSIT
+- `amount`: 100.00
+- `currency`: USD
+- `depositBankId`: 1
+- `bettingSiteId`: 1
+- `playerSiteId`: player123
+- `screenshot`: [PNG/JPG/JPEG file]
+
+**Success Response (201):**
+```json
+{
+  "message": "Transaction created successfully",
+  "transaction": {
+    "id": 3,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0694",
+    "type": "DEPOSIT",
+    "amount": "100.00",
+    "currency": "USD",
+    "status": "Pending",
+    "screenshotUrl": "http://localhost:3000/uploads/screenshot-1234567890.png",
+    "bettingSiteId": 1,
+    "playerSiteId": "player123",
+    "requestedAt": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Invalid file type. Only PNG, JPG, and JPEG files are allowed."
+}
+```
+
+---
+
+### 4. Get Player Transactions
+
+**Endpoint:** `GET /transactions?playerUuid=:playerUuid&page=1&limit=10`
+
+**Query Parameters:**
+- `playerUuid` (required): Player UUID
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+- `type` (optional): DEPOSIT or WITHDRAW
+- `status` (optional): Transaction status
+
+**Success Response (200):**
+```json
+{
+  "transactions": [
+    {
+      "id": 2,
+      "transactionUuid": "24068d99-fea9-412d-b4b1-01e3087bf4e2",
+      "type": "WITHDRAW",
+      "amount": "50.00",
+      "currency": "USD",
+      "status": "Pending",
+      "depositBank": null,
+      "withdrawalBank": {
+        "id": 1,
+        "bankName": "Chase Bank"
+      },
+      "withdrawalAddress": "test-address-123",
+      "screenshotUrl": null,
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "assignedAgent": null,
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
+    },
     {
       "id": 1,
-      "userUuid": "550e8400-e29b-41d4-a716-446655440001",
-      "username": "admin@example.com",
-      "displayName": "System Administrator",
-      "isActive": true,
-      "role": {
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Pending",
+      "depositBank": {
         "id": 1,
-        "name": "admin",
-        "description": "System Administrator"
+        "bankName": "Chase Bank"
       },
-      "createdAt": "2023-12-01T10:00:00.000Z"
+      "withdrawalBank": null,
+      "screenshotUrl": null,
+      "bettingSiteId": 1,
+      "playerSiteId": "player123",
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "assignedAgent": null,
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
     }
   ],
   "pagination": {
+    "total": 2,
+    "page": 1,
+    "limit": 10,
+    "pages": 1
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": ["\"playerUuid\" is required"]
+}
+```
+
+---
+
+### 5. Get Transaction Details
+
+**Endpoint:** `GET /transactions/:id?player_uuid=:playerUuid`
+
+**Query Parameters:**
+- `player_uuid` (optional): Player UUID for verification
+
+**Success Response (200):**
+```json
+{
+  "transaction": {
+    "id": 1,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+    "type": "DEPOSIT",
+    "amount": "100.00",
+    "currency": "USD",
+    "status": "Pending",
+    "depositBank": {
+      "id": 1,
+      "bankName": "Chase Bank",
+      "accountNumber": "1234567890",
+      "accountName": "Betting Payment Manager"
+    },
+    "withdrawalBank": null,
+    "screenshotUrl": null,
+    "bettingSiteId": 1,
+    "playerSiteId": "player123",
+    "bettingSite": {
+      "id": 1,
+      "name": "Arada Betting",
+      "website": "https://arada-betting.com"
+    },
+    "requestedAt": "2025-10-25T12:00:00.000Z",
+    "assignedAgent": null,
+    "adminNotes": null,
+    "agentNotes": null,
+    "rating": null,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Transaction not found"
+}
+```
+
+---
+
+## Admin - Transaction Management
+
+### 1. Get All Transactions
+
+**Endpoint:** `GET /admin/transactions`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20)
+- `status` (optional): Filter by status
+- `type` (optional): Filter by type (DEPOSIT/WITHDRAW)
+- `agent` (optional): Filter by assigned agent ID
+- `playerUuid` (optional): Filter by player UUID
+
+**Success Response (200):**
+```json
+{
+  "transactions": [
+    {
+      "id": 1,
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Pending",
+      "depositBank": {
+        "id": 1,
+        "bankName": "Chase Bank",
+        "accountNumber": "1234567890"
+      },
+      "withdrawalBank": null,
+      "withdrawalAddress": null,
+      "screenshotUrl": null,
+      "bettingSiteId": 1,
+      "playerSiteId": "player123",
+      "bettingSite": {
+        "id": 1,
+        "name": "Arada Betting",
+        "description": "Arada Betting Platform - Sports betting and casino games",
+        "website": "https://arada-betting.com",
+        "isActive": true
+      },
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "assignedAgent": null,
+      "adminNotes": null,
+      "agentNotes": null,
+      "rating": null,
+      "playerProfile": {
+        "id": 1,
+        "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+        "telegramUsername": "player123"
+      },
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
     "page": 1,
     "limit": 20,
-    "total": 1,
     "pages": 1
-  },
+  }
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "error": "Access token required"
+}
+```
+
+**Error Response (403):**
+```json
+{
+  "error": "Access denied. Admin role required."
+}
+```
+
+---
+
+### 2. Assign Transaction to Agent
+
+**Endpoint:** `PUT /admin/transactions/:id/assign`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "agentId": 12
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Transaction assigned successfully",
+  "transaction": {
+    "id": 1,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+    "assignedAgentId": 12,
+    "assignedAgent": {
+      "id": 12,
+      "username": "agent@example.com",
+      "displayName": "Support Agent"
+    }
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Transaction not found"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Agent not found"
+}
+```
+
+---
+
+### 3. Update Transaction Status
+
+**Endpoint:** `PUT /admin/transactions/:id/status`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "status": "SUCCESS",
+  "adminNotes": "Transaction completed successfully"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Transaction status updated successfully",
+  "transaction": {
+    "id": 1,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+    "status": "Success",
+    "adminNotes": "Transaction completed successfully",
+    "updatedAt": "2025-10-25T12:10:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Transaction not found"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Status not found"
+}
+```
+
+---
+
+### 4. Get Agents with Statistics
+
+**Endpoint:** `GET /admin/agents`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "agents": [
+    {
+      "id": 12,
+      "username": "agent@example.com",
+      "displayName": "Support Agent",
+      "isActive": true,
+      "stats": {
+        "totalAssigned": 5,
+        "pending": 2,
+        "inProgress": 1,
+        "completed": 2,
+        "failed": 0,
+        "averageRating": 4.5
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Admin - User Management
+
+### 1. Get All Roles
+
+**Endpoint:** `GET /admin/roles`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "roles": [
+    {
+      "id": 7,
+      "name": "admin"
+    },
+    {
+      "id": 8,
+      "name": "agent"
+    },
+    {
+      "id": 9,
+      "name": "player"
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get User Statistics
+
+**Endpoint:** `GET /admin/users/statistics`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
   "statistics": {
-    "totalUsers": 1,
+    "totalUsers": 2,
+    "activeUsers": 2,
+    "inactiveUsers": 0,
+    "recentUsers": 2,
     "roleDistribution": [
       {
         "role": "admin",
+        "count": 1
+      },
+      {
+        "role": "agent",
         "count": 1
       }
     ]
@@ -469,173 +987,515 @@ curl -X GET "http://localhost:3000/api/v1/admin/users?page=1&limit=20&role=1&sea
 }
 ```
 
-### 3. Get User by ID
+---
 
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/users/2 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+### 3. Register New User
+
+**Endpoint:** `POST /admin/users`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
-### 4. Update User
+**Request Body:**
+```json
+{
+  "username": "newadmin@example.com",
+  "password": "NewAdminPass123!",
+  "displayName": "New Administrator",
+  "email": "newadmin@example.com",
+  "phone": "+1234567892",
+  "roleId": 7,
+  "isActive": true
+}
+```
 
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/users/2 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
+**Success Response (201):**
+```json
+{
+  "message": "User created successfully",
+  "user": {
+    "id": 13,
+    "username": "newadmin@example.com",
+    "email": "newadmin@example.com",
+    "displayName": "New Administrator",
+    "phone": "+1234567892",
+    "roleId": 7,
+    "isActive": true,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (409):**
+```json
+{
+  "error": "User already exists",
+  "message": "A user with this username already exists"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    "\"password\" is required",
+    "\"roleId\" is required"
+  ]
+}
+```
+
+---
+
+### 4. Get All Users
+
+**Endpoint:** `GET /admin/users`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20)
+- `role` (optional): Filter by role ID (7=admin, 8=agent, 9=player)
+- `search` (optional): Search by username or display name
+- `isActive` (optional): Filter by active status (true/false)
+
+**Success Response (200):**
+```json
+{
+  "users": [
+    {
+      "id": 11,
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "displayName": "System Administrator",
+      "phone": "+1234567890",
+      "isActive": true,
+      "role": {
+        "id": 7,
+        "name": "admin"
+      },
+      "createdAt": "2025-10-25T11:56:17.000Z",
+      "updatedAt": "2025-10-25T11:56:17.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "pages": 1
+  }
+}
+```
+
+---
+
+### 5. Get User by ID
+
+**Endpoint:** `GET /admin/users/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "user": {
+    "id": 11,
+    "username": "admin@example.com",
+    "email": "admin@example.com",
+    "displayName": "System Administrator",
+    "phone": "+1234567890",
+    "isActive": true,
+    "role": {
+      "id": 7,
+      "name": "admin"
+    },
+    "createdAt": "2025-10-25T11:56:17.000Z",
+    "updatedAt": "2025-10-25T11:56:17.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "User not found"
+}
+```
+
+---
+
+### 6. Update User
+
+**Endpoint:** `PUT /admin/users/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "username": "updatedadmin@example.com",
+  "displayName": "Updated Administrator",
+  "email": "updatedadmin@example.com",
+  "phone": "+1234567893",
+  "roleId": 7,
+  "isActive": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "User updated successfully",
+  "user": {
+    "id": 13,
     "username": "updatedadmin@example.com",
+    "email": "updatedadmin@example.com",
     "displayName": "Updated Administrator",
-    "roleId": 1,
-    "isActive": true
-  }'
+    "phone": "+1234567893",
+    "roleId": 7,
+    "isActive": true,
+    "updatedAt": "2025-10-25T12:10:00.000Z"
+  }
+}
 ```
 
-### 5. Change User Password
-
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/users/2/password \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "newPassword": "NewSecurePassword123!"
-  }'
+**Error Response (404):**
+```json
+{
+  "error": "User not found"
+}
 ```
 
-### 6. Toggle User Status
+---
 
-```bash
-curl -X PUT http://localhost:3000/api/v1/admin/users/2/toggle-status \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+### 7. Change User Password (Admin)
+
+**Endpoint:** `PUT /admin/users/:id/password`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
-**Response:**
+**Request Body:**
+```json
+{
+  "newPassword": "NewSecurePassword123!"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "User not found"
+}
+```
+
+---
+
+### 8. Toggle User Status
+
+**Endpoint:** `PUT /admin/users/:id/toggle-status`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
 ```json
 {
   "message": "User deactivated successfully",
   "user": {
-    "id": 2,
+    "id": 13,
     "username": "updatedadmin@example.com",
-    "isActive": false
+    "isActive": false,
+    "updatedAt": "2025-10-25T12:15:00.000Z"
   }
 }
 ```
 
-### 7. Delete User
-
-```bash
-curl -X DELETE http://localhost:3000/api/v1/admin/users/2 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### 8. Get User Statistics
-
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/users/statistics \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Response:**
+**Error Response (404):**
 ```json
 {
-  "statistics": {
-    "totalUsers": 5,
-    "activeUsers": 4,
-    "inactiveUsers": 1,
-    "recentUsers": 2,
-    "roleDistribution": [
-      {
-        "role": "admin",
-        "count": 2
-      },
-      {
-        "role": "agent",
-        "count": 3
-      }
-    ]
-  }
+  "error": "User not found"
 }
 ```
 
-### 9. Get All Roles
+---
 
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/roles \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+### 9. Delete User
+
+**Endpoint:** `DELETE /admin/users/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
-**Response:**
+**Success Response (200):**
 ```json
 {
-  "roles": [
+  "message": "User deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "User not found"
+}
+```
+
+---
+
+## Admin - Configuration Management
+
+### 1. Get Deposit Banks (Admin)
+
+**Endpoint:** `GET /admin/deposit-banks`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "depositBanks": [
     {
       "id": 1,
-      "name": "admin",
-      "description": "System Administrator",
-      "isActive": true
-    },
-    {
-      "id": 2,
-      "name": "agent",
-      "description": "Customer Support Agent",
-      "isActive": true
+      "bankName": "Chase Bank",
+      "accountNumber": "1234567890",
+      "accountName": "Betting Payment Manager",
+      "notes": "Primary deposit account",
+      "isActive": true,
+      "createdAt": "2025-10-25T11:17:41.000Z",
+      "updatedAt": "2025-10-25T11:17:41.000Z"
     }
   ]
 }
 ```
 
-### 10. Create Agent User
+---
 
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/users \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "newagent@example.com",
-    "password": "AgentPass123!",
-    "displayName": "New Agent",
-    "roleId": 2,
-    "isActive": true
-  }'
+### 2. Create Deposit Bank
+
+**Endpoint:** `POST /admin/deposit-banks`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
-### 11. Get Agents Only
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/admin/users?role=2&page=1&limit=10" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+**Request Body:**
+```json
+{
+  "bankName": "New Bank",
+  "accountNumber": "9876543210",
+  "accountName": "Betting Payment Manager",
+  "notes": "New deposit account",
+  "isActive": true
+}
 ```
 
-### 12. Search Users
-
-```bash
-curl -X GET "http://localhost:3000/api/v1/admin/users?search=admin&page=1&limit=10" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-## Admin Configuration Management
-
-### 1. Create Deposit Bank
-
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/deposit-banks \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
+**Success Response (201):**
+```json
+{
+  "message": "Deposit bank created successfully",
+  "depositBank": {
+    "id": 4,
     "bankName": "New Bank",
     "accountNumber": "9876543210",
     "accountName": "Betting Payment Manager",
     "notes": "New deposit account",
-    "isActive": true
-  }'
+    "isActive": true,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
 ```
 
-### 2. Create Withdrawal Bank
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": ["\"bankName\" is required"]
+}
+```
 
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/withdrawal-banks \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
+---
+
+### 3. Update Deposit Bank
+
+**Endpoint:** `PUT /admin/deposit-banks/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bankName": "Updated Bank Name",
+  "accountNumber": "9876543210",
+  "accountName": "Updated Account Name",
+  "notes": "Updated notes",
+  "isActive": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Deposit bank updated successfully",
+  "depositBank": {
+    "id": 1,
+    "bankName": "Updated Bank Name",
+    "accountNumber": "9876543210",
+    "accountName": "Updated Account Name",
+    "notes": "Updated notes",
+    "isActive": true,
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Deposit bank not found"
+}
+```
+
+---
+
+### 4. Delete Deposit Bank
+
+**Endpoint:** `DELETE /admin/deposit-banks/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Deposit bank deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Deposit bank not found"
+}
+```
+
+---
+
+### 5. Get Withdrawal Banks (Admin)
+
+**Endpoint:** `GET /admin/withdrawal-banks`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "withdrawalBanks": [
+    {
+      "id": 1,
+      "bankName": "Chase Bank",
+      "requiredFields": [
+        {
+          "name": "account_number",
+          "label": "Account Number",
+          "type": "text",
+          "required": true
+        }
+      ],
+      "notes": "Primary withdrawal bank",
+      "isActive": true,
+      "createdAt": "2025-10-25T11:17:41.000Z",
+      "updatedAt": "2025-10-25T11:17:41.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 6. Create Withdrawal Bank
+
+**Endpoint:** `POST /admin/withdrawal-banks`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bankName": "New Withdrawal Bank",
+  "requiredFields": [
+    {
+      "name": "account_number",
+      "label": "Account Number",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "routing_number",
+      "label": "Routing Number",
+      "type": "text",
+      "required": true
+    }
+  ],
+  "notes": "New withdrawal bank",
+  "isActive": true
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Withdrawal bank created successfully",
+  "withdrawalBank": {
+    "id": 4,
     "bankName": "New Withdrawal Bank",
     "requiredFields": [
       {
@@ -652,115 +1512,1056 @@ curl -X POST http://localhost:3000/api/v1/admin/withdrawal-banks \
       }
     ],
     "notes": "New withdrawal bank",
-    "isActive": true
-  }'
+    "isActive": true,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
 ```
 
-### 3. Create Template
+---
 
-```bash
-curl -X POST http://localhost:3000/api/v1/admin/templates \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
+### 7. Update Withdrawal Bank
+
+**Endpoint:** `PUT /admin/withdrawal-banks/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bankName": "Updated Withdrawal Bank",
+  "requiredFields": [
+    {
+      "name": "account_number",
+      "label": "Account Number",
+      "type": "text",
+      "required": true
+    }
+  ],
+  "notes": "Updated notes",
+  "isActive": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Withdrawal bank updated successfully",
+  "withdrawalBank": {
+    "id": 1,
+    "bankName": "Updated Withdrawal Bank",
+    "requiredFields": [...],
+    "notes": "Updated notes",
+    "isActive": true,
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Withdrawal bank not found"
+}
+```
+
+---
+
+### 8. Delete Withdrawal Bank
+
+**Endpoint:** `DELETE /admin/withdrawal-banks/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Withdrawal bank deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Withdrawal bank not found"
+}
+```
+
+---
+
+### 9. Get Templates (Admin)
+
+**Endpoint:** `GET /admin/templates`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Query Parameters:**
+- `languageCode` (optional): Filter by language code
+
+**Success Response (200):**
+```json
+{
+  "templates": [
+    {
+      "id": 1,
+      "languageCode": "en",
+      "keyName": "welcome_message",
+      "content": "Welcome to Betting Payment Manager!",
+      "createdAt": "2025-10-25T11:17:41.000Z",
+      "updatedAt": "2025-10-25T11:17:41.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 10. Create Template
+
+**Endpoint:** `POST /admin/templates`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "languageCode": "en",
+  "keyName": "custom_message",
+  "content": "This is a custom message template"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Template created successfully",
+  "template": {
+    "id": 5,
     "languageCode": "en",
     "keyName": "custom_message",
-    "content": "This is a custom message template"
-  }'
+    "content": "This is a custom message template",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
 ```
+
+**Error Response (409):**
+```json
+{
+  "error": "Template already exists",
+  "message": "A template with this key already exists for this language"
+}
+```
+
+---
+
+### 11. Update Template
+
+**Endpoint:** `PUT /admin/templates/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "content": "Updated template content"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Template updated successfully",
+  "template": {
+    "id": 1,
+    "languageCode": "en",
+    "keyName": "welcome_message",
+    "content": "Updated template content",
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Template not found"
+}
+```
+
+---
+
+### 12. Delete Template
+
+**Endpoint:** `DELETE /admin/templates/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Template deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Template not found"
+}
+```
+
+---
+
+### 13. Get Languages (Admin)
+
+**Endpoint:** `GET /admin/languages`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "isActive": true,
+      "createdAt": "2025-10-25T11:17:41.000Z",
+      "updatedAt": "2025-10-25T11:17:41.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### 14. Create Language
+
+**Endpoint:** `POST /admin/languages`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "code": "de",
+  "name": "German",
+  "isActive": true
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Language created successfully",
+  "language": {
+    "code": "de",
+    "name": "German",
+    "isActive": true,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (409):**
+```json
+{
+  "error": "Language already exists"
+}
+```
+
+---
+
+### 15. Update Language
+
+**Endpoint:** `PUT /admin/languages/:code`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "Deutsch",
+  "isActive": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Language updated successfully",
+  "language": {
+    "code": "de",
+    "name": "Deutsch",
+    "isActive": true,
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Language not found"
+}
+```
+
+---
+
+### 16. Delete Language
+
+**Endpoint:** `DELETE /admin/languages/:code`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Language deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Language not found"
+}
+```
+
+---
+
+## Admin - Betting Sites Management
+
+### 1. Get All Betting Sites (Admin)
+
+**Endpoint:** `GET /admin/betting-sites`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Query Parameters:**
+- `isActive` (optional): Filter by active status (true/false)
+
+**Success Response (200):**
+```json
+{
+  "bettingSites": [
+    {
+      "id": 1,
+      "name": "Arada Betting",
+      "description": "Arada Betting Platform - Sports betting and casino games",
+      "website": "https://arada-betting.com",
+      "isActive": true,
+      "createdAt": "2025-10-25T11:22:13.000Z",
+      "updatedAt": "2025-10-25T11:22:13.000Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+### 2. Get Betting Site by ID (Admin)
+
+**Endpoint:** `GET /admin/betting-sites/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "bettingSite": {
+    "id": 1,
+    "name": "Arada Betting",
+    "description": "Arada Betting Platform - Sports betting and casino games",
+    "website": "https://arada-betting.com",
+    "isActive": true,
+    "createdAt": "2025-10-25T11:22:13.000Z",
+    "updatedAt": "2025-10-25T11:22:13.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Betting site not found"
+}
+```
+
+---
+
+### 3. Create Betting Site
+
+**Endpoint:** `POST /admin/betting-sites`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "New Betting Site",
+  "description": "A new betting platform for sports and casino games",
+  "website": "https://new-betting-site.com",
+  "isActive": true
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Betting site created successfully",
+  "bettingSite": {
+    "id": 9,
+    "name": "New Betting Site",
+    "description": "A new betting platform for sports and casino games",
+    "website": "https://new-betting-site.com",
+    "isActive": true,
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (409):**
+```json
+{
+  "error": "Betting site already exists",
+  "message": "A betting site with this name already exists"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Validation failed",
+  "details": ["\"name\" is required"]
+}
+```
+
+---
+
+### 4. Update Betting Site
+
+**Endpoint:** `PUT /admin/betting-sites/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "name": "Updated Betting Site",
+  "description": "Updated description for the betting platform",
+  "website": "https://updated-betting-site.com",
+  "isActive": true
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Betting site updated successfully",
+  "bettingSite": {
+    "id": 1,
+    "name": "Updated Betting Site",
+    "description": "Updated description for the betting platform",
+    "website": "https://updated-betting-site.com",
+    "isActive": true,
+    "updatedAt": "2025-10-25T12:05:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Betting site not found"
+}
+```
+
+**Error Response (409):**
+```json
+{
+  "error": "Betting site name already exists",
+  "message": "A betting site with this name already exists"
+}
+```
+
+---
+
+### 5. Toggle Betting Site Status
+
+**Endpoint:** `PUT /admin/betting-sites/:id/toggle-status`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Betting site deactivated successfully",
+  "bettingSite": {
+    "id": 1,
+    "name": "Arada Betting",
+    "isActive": false,
+    "updatedAt": "2025-10-25T12:10:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Betting site not found"
+}
+```
+
+---
+
+### 6. Delete Betting Site
+
+**Endpoint:** `DELETE /admin/betting-sites/:id`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Betting site deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Betting site not found"
+}
+```
+
+---
+
+## Agent Operations
+
+### 1. Get Assigned Tasks
+
+**Endpoint:** `GET /agent/tasks`
+
+**Headers:**
+```
+Authorization: Bearer AGENT_ACCESS_TOKEN
+```
+
+**Query Parameters:**
+- `status` (optional): Filter by status (PENDING, IN_PROGRESS, SUCCESS, FAILED)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+
+**Success Response (200):**
+```json
+{
+  "tasks": [
+    {
+      "id": 1,
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Pending",
+      "playerProfile": {
+        "id": 1,
+        "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+        "telegramUsername": "player123"
+      },
+      "depositBank": {
+        "id": 1,
+        "bankName": "Chase Bank",
+        "accountNumber": "1234567890"
+      },
+      "screenshotUrl": null,
+      "bettingSiteId": 1,
+      "playerSiteId": "player123",
+      "bettingSite": {
+        "id": 1,
+        "name": "Arada Betting"
+      },
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "agentNotes": null,
+      "createdAt": "2025-10-25T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "pages": 1
+  }
+}
+```
+
+---
+
+### 2. Process Transaction
+
+**Endpoint:** `PUT /agent/transactions/:id/process`
+
+**Headers:**
+```
+Authorization: Bearer AGENT_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "status": "SUCCESS",
+  "agentNotes": "Payment verified and processed",
+  "evidenceUrl": "https://example.com/receipt.jpg"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Transaction processed successfully",
+  "transaction": {
+    "id": 1,
+    "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+    "status": "Success",
+    "agentNotes": "Payment verified and processed",
+    "updatedAt": "2025-10-25T12:10:00.000Z"
+  }
+}
+```
+
+**Error Response (403):**
+```json
+{
+  "error": "Access denied. This transaction is not assigned to you."
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Transaction not found"
+}
+```
+
+---
+
+### 3. Upload Evidence
+
+**Endpoint:** `POST /agent/evidence`
+
+**Headers:**
+```
+Authorization: Bearer AGENT_ACCESS_TOKEN
+```
+
+**Content-Type:** `multipart/form-data`
+
+**Form Data:**
+- `file`: [PNG/JPG/JPEG file]
+
+**Success Response (200):**
+```json
+{
+  "message": "Evidence uploaded successfully",
+  "fileUrl": "http://localhost:3000/uploads/evidence-1234567890.png",
+  "filename": "evidence-1234567890.png"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Invalid file type. Only PNG, JPG, and JPEG files are allowed."
+}
+```
+
+---
+
+### 4. Get Agent Statistics
+
+**Endpoint:** `GET /agent/stats`
+
+**Headers:**
+```
+Authorization: Bearer AGENT_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "stats": {
+    "totalAssigned": 10,
+    "pending": 3,
+    "inProgress": 2,
+    "completed": 5,
+    "failed": 0,
+    "averageRating": 4.5,
+    "totalAmount": "1500.00",
+    "recentTransactions": [
+      {
+        "id": 1,
+        "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+        "type": "DEPOSIT",
+        "amount": "100.00",
+        "status": "Success",
+        "createdAt": "2025-10-25T12:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+---
 
 ## File Upload
 
 ### 1. Upload File
 
-```bash
-curl -X POST http://localhost:3000/api/v1/uploads \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "file=@/path/to/file.png"
+**Endpoint:** `POST /uploads`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
 ```
 
-### 2. Get Upload Configuration
+**Content-Type:** `multipart/form-data`
 
-```bash
-curl -X GET http://localhost:3000/api/v1/uploads/config
-```
+**Form Data:**
+- `file`: [PNG/JPG/JPEG file, max 5MB]
 
-## Health Check
-
-### 1. Check API Health
-
-```bash
-curl -X GET http://localhost:3000/health
-```
-
-**Response:**
+**Success Response (200):**
 ```json
 {
-  "status": "OK",
-  "timestamp": "2023-12-01T10:00:00.000Z",
-  "uptime": 3600,
-  "environment": "development"
+  "message": "File uploaded successfully",
+  "file": {
+    "filename": "upload-1234567890.png",
+    "originalName": "screenshot.png",
+    "mimetype": "image/png",
+    "size": 102400,
+    "url": "http://localhost:3000/uploads/upload-1234567890.png"
+  }
 }
 ```
 
-## Error Examples
-
-### 1. Invalid Credentials
-
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin@example.com",
-    "password": "wrongpassword"
-  }'
-```
-
-**Response:**
+**Error Response (400):**
 ```json
 {
-  "error": "Invalid credentials"
+  "error": "Invalid file type. Only PNG, JPG, and JPEG files are allowed."
 }
 ```
 
-### 2. Missing Authorization
-
-```bash
-curl -X GET http://localhost:3000/api/v1/admin/transactions
+**Error Response (400):**
+```json
+{
+  "error": "File too large. Maximum size is 5MB."
+}
 ```
 
-**Response:**
+---
+
+### 2. Get File
+
+**Endpoint:** `GET /uploads/:filename`
+
+**Success Response (200):**
+- Returns the file content with appropriate Content-Type header
+
+**Error Response (404):**
+```json
+{
+  "error": "File not found"
+}
+```
+
+---
+
+### 3. Delete File
+
+**Endpoint:** `DELETE /uploads/:filename`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "File deleted successfully"
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "File not found"
+}
+```
+
+---
+
+### 4. Get Upload Configuration
+
+**Endpoint:** `GET /uploads/config`
+
+**Success Response (200):**
+```json
+{
+  "maxFileSize": 5242880,
+  "allowedMimeTypes": [
+    "image/png",
+    "image/jpeg",
+    "image/jpg"
+  ],
+  "uploadPath": "/uploads",
+  "storageType": "local"
+}
+```
+
+---
+
+## Error Responses
+
+### Common Error Codes
+
+#### 400 - Bad Request
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    "\"amount\" is required",
+    "\"type\" must be one of [DEPOSIT, WITHDRAW]"
+  ]
+}
+```
+
+#### 401 - Unauthorized
 ```json
 {
   "error": "Access token required"
 }
 ```
 
-### 3. Validation Error
-
-```bash
-curl -X POST http://localhost:3000/api/v1/transactions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "playerUuid": "invalid-uuid",
-    "type": "DEPOSIT"
-  }'
-```
-
-**Response:**
 ```json
 {
-  "error": "Validation failed",
-  "details": ["\"amount\" is required"]
+  "error": "Invalid or expired token"
 }
 ```
 
+```json
+{
+  "error": "Invalid credentials"
+}
+```
+
+#### 403 - Forbidden
+```json
+{
+  "error": "Access denied. Admin role required."
+}
+```
+
+```json
+{
+  "error": "Access denied. This transaction is not assigned to you."
+}
+```
+
+#### 404 - Not Found
+```json
+{
+  "error": "Resource not found"
+}
+```
+
+```json
+{
+  "error": "Player not found"
+}
+```
+
+```json
+{
+  "error": "Transaction not found"
+}
+```
+
+```json
+{
+  "error": "User not found"
+}
+```
+
+```json
+{
+  "error": "Betting site not found"
+}
+```
+
+#### 409 - Conflict
+```json
+{
+  "error": "User already exists",
+  "message": "A user with this username already exists"
+}
+```
+
+```json
+{
+  "error": "Player already exists",
+  "message": "A player with this Telegram ID already exists"
+}
+```
+
+```json
+{
+  "error": "Betting site already exists",
+  "message": "A betting site with this name already exists"
+}
+```
+
+#### 429 - Too Many Requests
+```json
+{
+  "error": "Too many requests, please try again later."
+}
+```
+
+#### 500 - Internal Server Error
+```json
+{
+  "error": "Internal server error",
+  "message": "An unexpected error occurred"
+}
+```
+
+```json
+{
+  "error": "Failed to create transaction",
+  "message": "Internal server error",
+  "details": "Database connection failed"
+}
+```
+
+---
+
 ## Notes
 
-1. Replace `YOUR_ACCESS_TOKEN` with the actual JWT token from login response
-2. Replace `AGENT_ACCESS_TOKEN` with agent's JWT token
-3. Replace UUIDs with actual values from previous responses
-4. File paths should be absolute paths to existing files
-5. All timestamps are in ISO 8601 format
-6. Amounts are returned as strings to preserve precision
-7. The API uses UTC timezone for all timestamps
+### Authentication
+- All admin endpoints require `Authorization: Bearer YOUR_ACCESS_TOKEN` header
+- All agent endpoints require `Authorization: Bearer AGENT_ACCESS_TOKEN` header
+- Access tokens expire after 30 days (2592000 seconds)
+- Use refresh token to get a new access token
+
+### Role IDs
+- **Admin**: Role ID = 7
+- **Agent**: Role ID = 8
+- **Player**: Role ID = 9
+
+### Default Credentials
+- **Admin**: `admin@example.com` / `AdminPass123!`
+- **Agent**: `agent@example.com` / `AgentPass123!`
+
+### Transaction Types
+- **DEPOSIT**: Requires `depositBankId`, `bettingSiteId`, and `playerSiteId`
+- **WITHDRAW**: Requires `withdrawalBankId` and `withdrawalAddress`
+
+### Transaction Statuses
+- **PENDING**: Initial status
+- **IN_PROGRESS**: Agent is processing
+- **SUCCESS**: Completed successfully
+- **FAILED**: Failed to process
+- **CANCELLED**: Cancelled by admin
+
+### File Upload
+- Supported formats: PNG, JPG, JPEG
+- Maximum file size: 5MB
+- Files are stored locally in `/uploads` directory
+- S3 storage is available if configured
+
+### Betting Sites
+- 8 pre-configured betting sites available
+- Required for all DEPOSIT transactions
+- Agents can see betting site details when processing transactions
+
+### Rate Limiting
+- Auth endpoints: 50 requests per 15 minutes
+- Transaction endpoints: 100 requests per 15 minutes
+- Public endpoints: 100 requests per 15 minutes
+
+### Pagination
+- Default page: 1
+- Default limit: 10 (transactions), 20 (users)
+- Maximum limit: 100
+
+### Timestamps
+- All timestamps are in ISO 8601 format
+- Timezone: UTC
+- Example: `2025-10-25T12:00:00.000Z`
+
+### Currency
+- Default currency: USD
+- Amounts are returned as strings to preserve precision
+- Example: `"100.00"` instead of `100`

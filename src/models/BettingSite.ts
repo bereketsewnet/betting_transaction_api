@@ -50,16 +50,19 @@ BettingSite.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+      field: 'is_active',
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'created_at',
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'updated_at',
     },
   },
   {
@@ -67,6 +70,7 @@ BettingSite.init(
     modelName: 'BettingSite',
     tableName: 'betting_sites',
     timestamps: true,
+    underscored: true,
   }
 );
 

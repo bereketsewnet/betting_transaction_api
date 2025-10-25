@@ -12,16 +12,21 @@ export class TransactionController {
    */
   static async createTransaction(req: Request, res: Response): Promise<void> {
     try {
-      const { playerUuid, type, amount, currency, depositBankId, withdrawalBankId, withdrawalAddress } = req.body;
+      const { playerUuid, type, amount, currency, depositBankId, withdrawalBankId, withdrawalAddress, bettingSiteId, playerSiteId } = req.body;
 
-      // Find player profile
-      const playerProfile = await PlayerProfile.findOne({
+      // Find or create player profile
+      let playerProfile = await PlayerProfile.findOne({
         where: { playerUuid },
       });
 
+      // If player profile doesn't exist, create a temporary one
       if (!playerProfile) {
-        res.status(404).json({ error: 'Player profile not found' });
-        return;
+        playerProfile = await PlayerProfile.create({
+          playerUuid,
+          telegramId: `temp_${Date.now()}`, // Temporary telegram ID
+          telegramUsername: `temp_player_${Math.random().toString(36).substr(2, 9)}`, // Temporary username
+          languageCode: 'en', // Default language
+        });
       }
 
       // Get PENDING status
@@ -53,6 +58,8 @@ export class TransactionController {
         withdrawalBankId: type === 'WITHDRAW' ? withdrawalBankId : null,
         withdrawalAddress: type === 'WITHDRAW' ? withdrawalAddress : null,
         screenshotUrl,
+        bettingSiteId: type === 'DEPOSIT' ? bettingSiteId : null, // New field
+        playerSiteId: type === 'DEPOSIT' ? playerSiteId : null,   // New field
         requestedAt: new Date(),
         statusId: pendingStatus.id,
       });
@@ -121,6 +128,8 @@ export class TransactionController {
           currency: transaction.currency,
           status: transactionWithRelations?.status?.label,
           screenshotUrl: transaction.screenshotUrl,
+          bettingSiteId: transaction.bettingSiteId,
+          playerSiteId: transaction.playerSiteId,
           requestedAt: transaction.requestedAt,
           createdAt: transaction.createdAt,
         },

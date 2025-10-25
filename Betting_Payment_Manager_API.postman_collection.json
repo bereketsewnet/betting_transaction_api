@@ -1042,7 +1042,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"newadmin@example.com\",\n  \"password\": \"NewAdminPass123!\",\n  \"displayName\": \"New Administrator\",\n  \"roleId\": 1,\n  \"isActive\": true\n}"
+              "raw": "{\n  \"username\": \"newadmin@example.com\",\n  \"password\": \"NewAdminPass123!\",\n  \"displayName\": \"New Administrator\",\n  \"roleId\": 7,\n  \"isActive\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users",
@@ -1076,7 +1076,7 @@
                 },
                 {
                   "key": "role",
-                  "value": "1"
+                  "value": "7"
                 },
                 {
                   "key": "search",
@@ -1123,7 +1123,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"updatedadmin@example.com\",\n  \"displayName\": \"Updated Administrator\",\n  \"roleId\": 1,\n  \"isActive\": true\n}"
+              "raw": "{\n  \"username\": \"updatedadmin@example.com\",\n  \"displayName\": \"Updated Administrator\",\n  \"roleId\": 7,\n  \"isActive\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users/2",
@@ -1241,7 +1241,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"newagent@example.com\",\n  \"password\": \"AgentPass123!\",\n  \"displayName\": \"New Agent\",\n  \"roleId\": 2,\n  \"isActive\": true\n}"
+              "raw": "{\n  \"username\": \"newagent@example.com\",\n  \"password\": \"AgentPass123!\",\n  \"displayName\": \"New Agent\",\n  \"roleId\": 8,\n  \"isActive\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/users",
@@ -1267,7 +1267,7 @@
               "query": [
                 {
                   "key": "role",
-                  "value": "2"
+                  "value": "8"
                 },
                 {
                   "key": "page",

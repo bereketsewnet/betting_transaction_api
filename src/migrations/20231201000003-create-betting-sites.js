@@ -27,23 +27,22 @@ module.exports = {
         defaultValue: true,
         field: 'is_active',
       },
-      createdAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-        field: 'created_at',
-      },
-      updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-        field: 'updated_at',
-      },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+            defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+            field: 'created_at',
+          },
+          updatedAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+            defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+            field: 'updated_at',
+          },
     });
 
     // Add indexes
-    await queryInterface.addIndex('betting_sites', ['name']);
-    await queryInterface.addIndex('betting_sites', ['isActive']);
+    await queryInterface.addIndex('betting_sites', ['is_active']);
   },
 
   down: async (queryInterface, Sequelize) => {

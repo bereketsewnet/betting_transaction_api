@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     // Add indexes for better performance
-    await queryInterface.addIndex('transactions', ['status_id', 'created_at'], {
+    await queryInterface.addIndex('transactions', ['status_id', 'createdAt'], {
       name: 'idx_transactions_status_created'
     });
 
