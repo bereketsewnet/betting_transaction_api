@@ -58,8 +58,8 @@ export class TransactionController {
         withdrawalBankId: type === 'WITHDRAW' ? withdrawalBankId : null,
         withdrawalAddress: type === 'WITHDRAW' ? withdrawalAddress : null,
         screenshotUrl,
-        bettingSiteId: type === 'DEPOSIT' ? bettingSiteId : null, // New field
-        playerSiteId: type === 'DEPOSIT' ? playerSiteId : null,   // New field
+        bettingSiteId: bettingSiteId, // Required for both DEPOSIT and WITHDRAW
+        playerSiteId: playerSiteId,   // Required for both DEPOSIT and WITHDRAW
         requestedAt: new Date(),
         statusId: pendingStatus.id,
       });

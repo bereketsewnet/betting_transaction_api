@@ -395,7 +395,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"playerUuid\": \"{{playerUuid}}\",\n  \"type\": \"WITHDRAW\",\n  \"amount\": 50.00,\n  \"currency\": \"USD\",\n  \"withdrawalBankId\": 1,\n  \"withdrawalAddress\": \"test-address-123\"\n}"
+              "raw": "{\n  \"playerUuid\": \"{{playerUuid}}\",\n  \"type\": \"WITHDRAW\",\n  \"amount\": 50.00,\n  \"currency\": \"USD\",\n  \"withdrawalBankId\": 1,\n  \"withdrawalAddress\": \"test-address-123\",\n  \"bettingSiteId\": 1,\n  \"playerSiteId\": \"player123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/transactions",

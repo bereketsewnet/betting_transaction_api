@@ -16,6 +16,7 @@ const sequelize = new Sequelize({
     collate: 'utf8mb4_unicode_ci',
     timestamps: true,
     underscored: false,
+    freezeTableName: true,
   },
   pool: {
     max: 5,

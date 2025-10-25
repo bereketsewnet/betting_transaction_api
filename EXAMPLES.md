@@ -499,7 +499,9 @@ Content-Type: application/json
   "amount": 50.00,
   "currency": "USD",
   "withdrawalBankId": 1,
-  "withdrawalAddress": "test-address-123"
+  "withdrawalAddress": "test-address-123",
+  "bettingSiteId": 1,
+  "playerSiteId": "player123"
 }
 ```
 
@@ -515,6 +517,8 @@ Content-Type: application/json
     "currency": "USD",
     "status": "Pending",
     "screenshotUrl": null,
+    "bettingSiteId": 1,
+    "playerSiteId": "player123",
     "requestedAt": "2025-10-25T12:00:00.000Z",
     "createdAt": "2025-10-25T12:00:00.000Z",
     "updatedAt": "2025-10-25T12:00:00.000Z"
@@ -528,7 +532,9 @@ Content-Type: application/json
   "error": "Validation failed",
   "details": [
     "\"withdrawalBankId\" is required",
-    "\"withdrawalAddress\" is required"
+    "\"withdrawalAddress\" is required",
+    "\"bettingSiteId\" is required",
+    "\"playerSiteId\" is required"
   ]
 }
 ```
@@ -2526,7 +2532,7 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ### Transaction Types
 - **DEPOSIT**: Requires `depositBankId`, `bettingSiteId`, and `playerSiteId`
-- **WITHDRAW**: Requires `withdrawalBankId` and `withdrawalAddress`
+- **WITHDRAW**: Requires `withdrawalBankId`, `withdrawalAddress`, `bettingSiteId`, and `playerSiteId`
 
 ### Transaction Statuses
 - **PENDING**: Initial status

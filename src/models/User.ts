@@ -68,10 +68,6 @@ User.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'role_id',
-      references: {
-        model: 'roles',
-        key: 'id',
-      },
     },
     displayName: {
       type: DataTypes.STRING(100),
