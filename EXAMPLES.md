@@ -2118,7 +2118,7 @@ Authorization: Bearer AGENT_ACCESS_TOKEN
 **Query Parameters:**
 - `status` (optional): Filter by status (PENDING, IN_PROGRESS, SUCCESS, FAILED)
 - `page` (optional): Page number (default: 1)
-- `limit` (optional): Items per page (default: 10)
+- `limit` (optional): Items per page (default: 20)
 
 **Success Response (200):**
 ```json
@@ -2131,34 +2131,52 @@ Authorization: Bearer AGENT_ACCESS_TOKEN
       "amount": "100.00",
       "currency": "USD",
       "status": "Pending",
-      "playerProfile": {
-        "id": 1,
-        "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
-        "telegramUsername": "player123"
-      },
       "depositBank": {
         "id": 1,
         "bankName": "Chase Bank",
         "accountNumber": "1234567890"
       },
+      "withdrawalBank": null,
+      "withdrawalAddress": null,
       "screenshotUrl": null,
       "bettingSiteId": 1,
       "playerSiteId": "player123",
-      "bettingSite": {
-        "id": 1,
-        "name": "Arada Betting"
-      },
       "requestedAt": "2025-10-25T12:00:00.000Z",
+      "adminNotes": null,
       "agentNotes": null,
-      "createdAt": "2025-10-25T12:00:00.000Z"
+      "rating": null,
+      "playerProfile": {
+        "id": 1,
+        "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+        "telegramUsername": "player123"
+      },
+      "evidence": [],
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
     }
   ],
   "pagination": {
     "total": 1,
     "page": 1,
-    "limit": 10,
+    "limit": 20,
     "pages": 1
   }
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "error": "Agent ID not found"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "error": "Failed to get tasks",
+  "message": "Internal server error while fetching agent tasks",
+  "details": "Database connection failed"
 }
 ```
 
@@ -2192,6 +2210,7 @@ Content-Type: application/json
     "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
     "status": "Success",
     "agentNotes": "Payment verified and processed",
+    "evidenceUrl": "https://example.com/receipt.jpg",
     "updatedAt": "2025-10-25T12:10:00.000Z"
   }
 }
@@ -2200,14 +2219,34 @@ Content-Type: application/json
 **Error Response (403):**
 ```json
 {
-  "error": "Access denied. This transaction is not assigned to you."
+  "error": "Access denied. This transaction is not assigned to you.",
+  "message": "You can only process transactions assigned to you"
 }
 ```
 
 **Error Response (404):**
 ```json
 {
-  "error": "Transaction not found"
+  "error": "Transaction not found",
+  "message": "The requested transaction does not exist"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Invalid status",
+  "message": "The provided status is not valid",
+  "validStatuses": ["PENDING", "IN_PROGRESS", "SUCCESS", "FAILED", "CANCELLED"]
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "error": "Failed to process transaction",
+  "message": "Internal server error while processing transaction",
+  "details": "Database connection failed"
 }
 ```
 
@@ -2232,7 +2271,22 @@ Authorization: Bearer AGENT_ACCESS_TOKEN
 {
   "message": "Evidence uploaded successfully",
   "fileUrl": "http://localhost:3000/uploads/evidence-1234567890.png",
-  "filename": "evidence-1234567890.png"
+  "filename": "evidence-1234567890.png",
+  "file": {
+    "filename": "evidence-1234567890.png",
+    "originalName": "receipt.png",
+    "mimetype": "image/png",
+    "size": 102400,
+    "url": "http://localhost:3000/uploads/evidence-1234567890.png"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "No file uploaded",
+  "message": "Please select a file to upload"
 }
 ```
 
@@ -2240,6 +2294,15 @@ Authorization: Bearer AGENT_ACCESS_TOKEN
 ```json
 {
   "error": "Invalid file type. Only PNG, JPG, and JPEG files are allowed."
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "error": "Failed to upload evidence",
+  "message": "Internal server error while uploading file",
+  "details": "File system error"
 }
 ```
 
@@ -2265,17 +2328,35 @@ Authorization: Bearer AGENT_ACCESS_TOKEN
     "failed": 0,
     "averageRating": 4.5,
     "totalAmount": "1500.00",
-    "recentTransactions": [
-      {
-        "id": 1,
-        "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
-        "type": "DEPOSIT",
-        "amount": "100.00",
-        "status": "Success",
-        "createdAt": "2025-10-25T12:00:00.000Z"
-      }
-    ]
-  }
+    "recentActivity": 8
+  },
+  "recentTransactions": [
+    {
+      "id": 1,
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Success",
+      "createdAt": "2025-10-25T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "error": "Agent ID not found"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "error": "Failed to get agent statistics",
+  "message": "Internal server error while fetching agent statistics",
+  "details": "Database connection failed"
 }
 ```
 

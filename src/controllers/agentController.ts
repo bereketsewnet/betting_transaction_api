@@ -14,7 +14,12 @@ export class AgentController {
   static async getTasks(req: Request, res: Response): Promise<void> {
     try {
       const { status, page = 1, limit = 20 } = req.query;
-      const agentId = req.user!.userId;
+      const agentId = (req as any).user?.userId;
+
+      if (!agentId) {
+        res.status(401).json({ error: 'Agent ID not found' });
+        return;
+      }
 
       const offset = (Number(page) - 1) * Number(limit);
       const whereClause: any = { assignedAgentId: agentId };
@@ -70,6 +75,8 @@ export class AgentController {
           withdrawalBank: transaction.withdrawalBank,
           withdrawalAddress: transaction.withdrawalAddress,
           screenshotUrl: transaction.screenshotUrl,
+          bettingSiteId: transaction.bettingSiteId,
+          playerSiteId: transaction.playerSiteId,
           requestedAt: transaction.requestedAt,
           adminNotes: transaction.adminNotes,
           agentNotes: transaction.agentNotes,
@@ -92,7 +99,11 @@ export class AgentController {
       });
     } catch (error) {
       console.error('Get tasks error:', error);
-      res.status(500).json({ error: 'Failed to get tasks' });
+      res.status(500).json({ 
+        error: 'Failed to get tasks',
+        message: 'Internal server error while fetching agent tasks',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
@@ -103,7 +114,12 @@ export class AgentController {
     try {
       const { id } = req.params;
       const { status, agentNotes, evidenceUrl } = req.body;
-      const agentId = req.user!.userId;
+      const agentId = (req as any).user?.userId;
+
+      if (!agentId) {
+        res.status(401).json({ error: 'Agent ID not found' });
+        return;
+      }
 
       const transaction = await Transaction.findByPk(id, {
         include: [
@@ -119,19 +135,29 @@ export class AgentController {
       });
 
       if (!transaction) {
-        res.status(404).json({ error: 'Transaction not found' });
+        res.status(404).json({ 
+          error: 'Transaction not found',
+          message: 'The requested transaction does not exist'
+        });
         return;
       }
 
       // Check if agent is assigned to this transaction
       if (transaction.assignedAgentId !== agentId) {
-        res.status(403).json({ error: 'You are not assigned to this transaction' });
+        res.status(403).json({ 
+          error: 'Access denied. This transaction is not assigned to you.',
+          message: 'You can only process transactions assigned to you'
+        });
         return;
       }
 
       const statusRecord = await TransactionStatus.findOne({ where: { code: status } });
       if (!statusRecord) {
-        res.status(400).json({ error: 'Invalid status' });
+        res.status(400).json({ 
+          error: 'Invalid status',
+          message: 'The provided status is not valid',
+          validStatuses: ['PENDING', 'IN_PROGRESS', 'SUCCESS', 'FAILED', 'CANCELLED']
+        });
         return;
       }
 
@@ -152,18 +178,20 @@ export class AgentController {
       }
 
       // Create audit log
-      await AuditLog.create({
-        actorUserId: agentId,
-        entity: 'Transaction',
-        entityId: transaction.id,
-        action: 'PROCESSED',
-        oldValue: { statusId: oldStatusId },
-        newValue: { statusId: statusRecord.id, agentNotes, evidenceUrl },
-        ipAddress: req.ip,
-      });
+      if (agentId) {
+        await AuditLog.create({
+          actorUserId: agentId,
+          entity: 'Transaction',
+          entityId: transaction.id,
+          action: 'PROCESSED',
+          oldValue: { statusId: oldStatusId },
+          newValue: { statusId: statusRecord.id, agentNotes, evidenceUrl },
+          ipAddress: req.ip,
+        });
+      }
 
       // Notify player via Telegram
-      if (transaction.playerProfile?.telegramId) {
+      if (transaction.playerProfile?.telegramId && telegramService.isConfigured()) {
         await telegramService.sendTransactionNotification(
           transaction.playerProfile.telegramId,
           transaction.transactionUuid,
@@ -198,11 +226,16 @@ export class AgentController {
           status: statusRecord.label,
           agentNotes,
           evidenceUrl,
+          updatedAt: transaction.updatedAt,
         },
       });
     } catch (error) {
       console.error('Process transaction error:', error);
-      res.status(500).json({ error: 'Failed to process transaction' });
+      res.status(500).json({ 
+        error: 'Failed to process transaction',
+        message: 'Internal server error while processing transaction',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
@@ -212,7 +245,10 @@ export class AgentController {
   static async uploadEvidence(req: Request, res: Response): Promise<void> {
     try {
       if (!req.file) {
-        res.status(400).json({ error: 'No file uploaded' });
+        res.status(400).json({ 
+          error: 'No file uploaded',
+          message: 'Please select a file to upload'
+        });
         return;
       }
 
@@ -220,6 +256,8 @@ export class AgentController {
 
       res.json({
         message: 'Evidence uploaded successfully',
+        fileUrl: uploadResult.url,
+        filename: uploadResult.filename,
         file: {
           filename: uploadResult.filename,
           originalName: uploadResult.originalName,
@@ -230,7 +268,11 @@ export class AgentController {
       });
     } catch (error) {
       console.error('Upload evidence error:', error);
-      res.status(500).json({ error: 'Failed to upload evidence' });
+      res.status(500).json({ 
+        error: 'Failed to upload evidence',
+        message: 'Internal server error while uploading file',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
@@ -239,7 +281,12 @@ export class AgentController {
    */
   static async getAgentStats(req: Request, res: Response): Promise<void> {
     try {
-      const agentId = req.user!.userId;
+      const agentId = (req as any).user?.userId;
+
+      if (!agentId) {
+        res.status(401).json({ error: 'Agent ID not found' });
+        return;
+      }
 
       // Get all transactions assigned to this agent
       const transactions = await Transaction.findAll({
@@ -250,12 +297,19 @@ export class AgentController {
         }],
       });
 
+      const totalAssigned = transactions.length;
+      const pending = transactions.filter(t => t.status?.code === 'PENDING').length;
+      const inProgress = transactions.filter(t => t.status?.code === 'IN_PROGRESS').length;
       const completed = transactions.filter(t => t.status?.code === 'SUCCESS').length;
-      const pending = transactions.filter(t => ['PENDING', 'IN_PROGRESS'].includes(t.status?.code || '')).length;
       const failed = transactions.filter(t => t.status?.code === 'FAILED').length;
       
       const ratings = transactions.filter(t => t.rating).map(t => t.rating!);
-      const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+      const averageRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+      // Calculate total amount processed
+      const totalAmount = transactions
+        .filter(t => t.status?.code === 'SUCCESS')
+        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
 
       // Get recent activity (last 30 days)
       const thirtyDaysAgo = new Date();
@@ -267,11 +321,13 @@ export class AgentController {
 
       res.json({
         stats: {
-          total: transactions.length,
-          completed,
+          totalAssigned,
           pending,
+          inProgress,
+          completed,
           failed,
-          avgRating: Math.round(avgRating * 100) / 100,
+          averageRating: Math.round(averageRating * 100) / 100,
+          totalAmount: totalAmount.toFixed(2),
           recentActivity: recentTransactions.length,
         },
         recentTransactions: recentTransactions.slice(0, 10).map(transaction => ({
@@ -286,7 +342,11 @@ export class AgentController {
       });
     } catch (error) {
       console.error('Get agent stats error:', error);
-      res.status(500).json({ error: 'Failed to get agent statistics' });
+      res.status(500).json({ 
+        error: 'Failed to get agent statistics',
+        message: 'Internal server error while fetching agent statistics',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }
