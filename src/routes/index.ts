@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthController, loginValidation, refreshTokenValidation, changePasswordValidation } from '../controllers/authController';
-import { PlayerController, createPlayerValidation, updatePlayerValidation } from '../controllers/playerController';
+import { PlayerController, createPlayerValidation, registerPlayerValidation, updatePlayerValidation } from '../controllers/playerController';
 import { TransactionController, createTransactionValidation, getTransactionsByPlayerValidation } from '../controllers/transactionController';
 import { AdminController, assignTransactionValidation, updateTransactionStatusValidation, getTransactionsValidation } from '../controllers/adminController';
 import { AgentController, processTransactionValidation, getTasksValidation } from '../controllers/agentController';
@@ -30,12 +30,15 @@ router.get('/config/betting-sites', BettingSiteController.getAllBettingSites);
 
 // Public player routes
 router.post('/players', publicRateLimit, createPlayerValidation, PlayerController.createPlayer);
+router.post('/players/register', publicRateLimit, registerPlayerValidation, PlayerController.registerPlayer);
+router.get('/players/user/:userId', PlayerController.getPlayerByUserId);
 router.get('/players/:playerUuid', PlayerController.getPlayerByUuid);
 router.put('/players/:playerUuid', updatePlayerValidation, PlayerController.updatePlayer);
 
 // Public transaction routes
 router.post('/transactions', transactionRateLimit, fileUploadService.getMulterConfig().single('screenshot'), createTransactionValidation, TransactionController.createTransaction);
 router.get('/transactions', getTransactionsByPlayerValidation, TransactionController.getTransactionsByPlayer);
+router.get('/transactions/temp', TransactionController.getTransactionsByTempId);
 router.get('/transactions/:id', optionalAuth, TransactionController.getTransaction);
 
 // Admin routes

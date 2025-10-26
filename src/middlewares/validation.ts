@@ -58,6 +58,23 @@ export const schemas = {
     languageCode: Joi.string().length(2).default('en'),
   }),
 
+  registerPlayer: Joi.object({
+    telegramId: Joi.string().optional(),
+    telegramUsername: Joi.string().optional(),
+    languageCode: Joi.string().length(2).default('en'),
+    username: Joi.string().min(3).max(50).optional(),
+    email: Joi.string().email().optional(),
+    phone: Joi.string().max(20).optional(),
+    password: Joi.string().min(6).optional(),
+    displayName: Joi.string().max(100).optional(),
+  }).custom((value, helpers) => {
+    // If username is provided, email and password are required
+    if (value.username && (!value.email || !value.password)) {
+      return helpers.error('any.invalid', { message: 'Email and password are required when username is provided' });
+    }
+    return value;
+  }),
+
   createTransaction: Joi.object({
     playerUuid: Joi.string().uuid().required(),
     type: Joi.string().valid('DEPOSIT', 'WITHDRAW').required(),
@@ -99,11 +116,17 @@ export const schemas = {
 
   transactionFilters: Joi.object({
     playerUuid: Joi.string().uuid().optional(),
+    tempId: Joi.string().optional(),
     dateRange: Joi.string().optional(),
+    startDate: Joi.date().optional(),
+    endDate: Joi.date().optional(),
     status: Joi.string().optional(),
     agent: Joi.number().optional(),
     type: Joi.string().valid('DEPOSIT', 'WITHDRAW').optional(),
     amountRange: Joi.string().optional(),
+    minAmount: Joi.number().min(0).optional(),
+    maxAmount: Joi.number().min(0).optional(),
+    bettingSiteId: Joi.number().optional(),
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(100).default(20),
   }),

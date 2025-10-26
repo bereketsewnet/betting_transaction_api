@@ -5,6 +5,7 @@ import { validate, schemas, validateQuery } from '../middlewares/validation';
 import { fileUploadService } from '../services/fileUpload';
 import { socketService } from '../services/socketService';
 import { telegramService } from '../services/telegramService';
+import { Op } from 'sequelize';
 
 export class TransactionController {
   /**
@@ -261,15 +262,132 @@ export class TransactionController {
   }
 
   /**
+   * Get transactions by temp ID (public endpoint for unregistered users)
+   */
+  static async getTransactionsByTempId(req: Request, res: Response): Promise<void> {
+    try {
+      const { tempId, page = 1, limit = 10 } = req.query;
+
+      if (!tempId) {
+        res.status(400).json({ 
+          error: 'Validation failed',
+          details: ['\"tempId\" is required']
+        });
+        return;
+      }
+
+      const offset = (Number(page) - 1) * Number(limit);
+
+      // Find player profile by temp ID (telegramId starting with 'temp_')
+      const playerProfile = await PlayerProfile.findOne({
+        where: {
+          telegramId: `temp_${tempId}`,
+        },
+      });
+
+      if (!playerProfile) {
+        res.status(404).json({ 
+          error: 'No transactions found',
+          message: 'No transactions found for this temporary ID'
+        });
+        return;
+      }
+
+      const { count, rows: transactions } = await Transaction.findAndCountAll({
+        where: { playerProfileId: playerProfile.id },
+        include: [
+          {
+            model: PlayerProfile,
+            as: 'playerProfile',
+          },
+          {
+            model: TransactionStatus,
+            as: 'status',
+          },
+          {
+            model: DepositBank,
+            as: 'depositBank',
+            required: false,
+          },
+          {
+            model: WithdrawalBank,
+            as: 'withdrawalBank',
+            required: false,
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: Number(limit),
+        offset,
+      });
+
+      res.json({
+        message: 'Transactions retrieved successfully',
+        transactions: transactions.map(transaction => ({
+          id: transaction.id,
+          transactionUuid: transaction.transactionUuid,
+          type: transaction.type,
+          amount: transaction.amount,
+          currency: transaction.currency,
+          status: transaction.status?.label,
+          depositBank: transaction.depositBank,
+          withdrawalBank: transaction.withdrawalBank,
+          withdrawalAddress: transaction.withdrawalAddress,
+          screenshotUrl: transaction.screenshotUrl,
+          bettingSiteId: transaction.bettingSiteId,
+          playerSiteId: transaction.playerSiteId,
+          requestedAt: transaction.requestedAt,
+          assignedAgent: transaction.assignedAgent,
+          adminNotes: transaction.adminNotes,
+          agentNotes: transaction.agentNotes,
+          rating: transaction.rating,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        })),
+        pagination: {
+          total: count,
+          page: Number(page),
+          limit: Number(limit),
+          pages: Math.ceil(count / Number(limit)),
+        },
+        playerInfo: {
+          playerUuid: playerProfile.playerUuid,
+          telegramUsername: playerProfile.telegramUsername,
+          isTemporary: playerProfile.telegramId?.startsWith('temp_') || false,
+        },
+      });
+    } catch (error) {
+      console.error('Get transactions by temp ID error:', error);
+      res.status(500).json({ 
+        error: 'Failed to get transactions',
+        message: 'Internal server error while fetching transactions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
    * Get transactions by player UUID (public access)
    */
   static async getTransactionsByPlayer(req: Request, res: Response): Promise<void> {
     try {
-      const { playerUuid } = req.query;
-      const { page = 1, limit = 20 } = req.query;
+      const { 
+        playerUuid, 
+        page = 1, 
+        limit = 20, 
+        type, 
+        status, 
+        bettingSiteId,
+        minAmount,
+        maxAmount,
+        startDate,
+        endDate
+      } = req.query;
 
       if (!playerUuid) {
-        res.status(400).json({ error: 'Player UUID is required' });
+        res.status(400).json({ 
+          error: 'Validation failed',
+          details: ['\"playerUuid\" is required']
+        });
         return;
       }
 
@@ -278,14 +396,57 @@ export class TransactionController {
       });
 
       if (!playerProfile) {
-        res.status(404).json({ error: 'Player profile not found' });
+        res.status(404).json({ 
+          error: 'Player profile not found',
+          message: 'No player found with this UUID'
+        });
         return;
       }
 
       const offset = (Number(page) - 1) * Number(limit);
 
+      // Build where clause with advanced filtering
+      const whereClause: any = { playerProfileId: playerProfile.id };
+
+      if (type) {
+        whereClause.type = type;
+      }
+
+      if (status) {
+        const statusRecord = await TransactionStatus.findOne({ 
+          where: { code: status as string } 
+        });
+        if (statusRecord) {
+          whereClause.statusId = statusRecord.id;
+        }
+      }
+
+      if (bettingSiteId) {
+        whereClause.bettingSiteId = bettingSiteId;
+      }
+
+      if (minAmount || maxAmount) {
+        whereClause.amount = {};
+        if (minAmount) {
+          whereClause.amount[Op.gte] = parseFloat(minAmount as string);
+        }
+        if (maxAmount) {
+          whereClause.amount[Op.lte] = parseFloat(maxAmount as string);
+        }
+      }
+
+      if (startDate || endDate) {
+        whereClause.createdAt = {};
+        if (startDate) {
+          whereClause.createdAt[Op.gte] = new Date(startDate as string);
+        }
+        if (endDate) {
+          whereClause.createdAt[Op.lte] = new Date(endDate as string);
+        }
+      }
+
       const { count, rows: transactions } = await Transaction.findAndCountAll({
-        where: { playerProfileId: playerProfile.id },
+        where: whereClause,
         include: [
           {
             model: TransactionStatus,
@@ -308,6 +469,7 @@ export class TransactionController {
       });
 
       res.json({
+        message: 'Transactions retrieved successfully',
         transactions: transactions.map(transaction => ({
           id: transaction.id,
           transactionUuid: transaction.transactionUuid,
@@ -319,7 +481,13 @@ export class TransactionController {
           withdrawalBank: transaction.withdrawalBank,
           withdrawalAddress: transaction.withdrawalAddress,
           screenshotUrl: transaction.screenshotUrl,
+          bettingSiteId: transaction.bettingSiteId,
+          playerSiteId: transaction.playerSiteId,
           requestedAt: transaction.requestedAt,
+          assignedAgent: transaction.assignedAgent,
+          adminNotes: transaction.adminNotes,
+          agentNotes: transaction.agentNotes,
+          rating: transaction.rating,
           createdAt: transaction.createdAt,
           updatedAt: transaction.updatedAt,
         })),
@@ -329,10 +497,28 @@ export class TransactionController {
           limit: Number(limit),
           pages: Math.ceil(count / Number(limit)),
         },
+        filters: {
+          type,
+          status,
+          bettingSiteId,
+          minAmount,
+          maxAmount,
+          startDate,
+          endDate,
+        },
+        playerInfo: {
+          playerUuid: playerProfile.playerUuid,
+          telegramUsername: playerProfile.telegramUsername,
+          isTemporary: playerProfile.telegramId?.startsWith('temp_') || false,
+        },
       });
     } catch (error) {
       console.error('Get transactions by player error:', error);
-      res.status(500).json({ error: 'Failed to get transactions' });
+      res.status(500).json({ 
+        error: 'Failed to get transactions',
+        message: 'Internal server error while fetching transactions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }

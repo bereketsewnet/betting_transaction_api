@@ -427,6 +427,359 @@ Content-Type: application/json
 
 ---
 
+## Player Operations
+
+### 1. Extended Player Registration
+
+**Endpoint:** `POST /players/register`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "telegramId": "123456789",
+  "telegramUsername": "player123",
+  "languageCode": "en",
+  "username": "player123",
+  "email": "player@example.com",
+  "password": "password123",
+  "displayName": "Player Name",
+  "phone": "+1234567890"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Player registered successfully",
+  "player": {
+    "id": 5,
+    "playerUuid": "84153609-76d1-4414-819b-c469b6651d9f",
+    "userId": 16,
+    "telegramId": "123456789",
+    "telegramUsername": "player123",
+    "displayName": "Player Name",
+    "email": "player@example.com",
+    "phone": "+1234567890",
+    "isTemporary": false,
+    "languageCode": "en",
+    "createdAt": "2025-10-26T14:00:00.000Z"
+  }
+}
+```
+
+**Error Response (400 - Validation Error):**
+```json
+{
+  "error": "Validation error",
+  "details": "\"email\" is required when \"username\" is provided"
+}
+```
+
+---
+
+### 2. Get Player by User ID
+
+**Endpoint:** `GET /players/user/:userId`
+
+**Path Parameters:**
+- `userId` (required): The user ID from the authentication response
+
+**Success Response (200):**
+```json
+{
+  "player": {
+    "id": 12,
+    "playerUuid": "84153609-76d1-4414-819b-c469b6651d9f",
+    "userId": 16,
+    "telegramId": "temp_1761487642921",
+    "telegramUsername": "temp_player_4a7ifnwdv",
+    "languageCode": "fr",
+    "lastActive": "2025-10-26T14:07:22.000Z",
+    "user": {
+      "id": 16,
+      "username": "player3@example.com",
+      "email": "player3@example.com",
+      "roleId": 9,
+      "displayName": "Bereket Sewnet2",
+      "phone": "+251912757376",
+      "isActive": true,
+      "createdAt": "2025-10-26T14:07:23.000Z",
+      "updatedAt": "2025-10-26T14:07:23.000Z"
+    }
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player profile not found for this user"
+}
+```
+
+---
+
+### 3. Temp ID Transaction Lookup
+
+**Endpoint:** `GET /transactions/temp`
+
+**Query Parameters:**
+- `tempId` (required): Temporary ID to lookup transactions
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 10)
+
+**Success Response (200):**
+```json
+{
+  "message": "Transactions retrieved successfully",
+  "transactions": [
+    {
+      "id": 1,
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Pending",
+      "depositBank": {
+        "id": 1,
+        "bankName": "Chase Bank",
+        "accountNumber": "1234567890"
+      },
+      "withdrawalBank": null,
+      "withdrawalAddress": null,
+      "screenshotUrl": null,
+      "bettingSiteId": 1,
+      "playerSiteId": "player123",
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "assignedAgent": null,
+      "adminNotes": null,
+      "agentNotes": null,
+      "rating": null,
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "pages": 1
+  },
+  "playerInfo": {
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramUsername": "temp_player_abc123",
+    "isTemporary": true
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "No transactions found",
+  "message": "No transactions found for this temporary ID"
+}
+```
+
+---
+
+### 4. Advanced Transaction Filtering
+
+**Endpoint:** `GET /transactions`
+
+**Query Parameters:**
+- `playerUuid` (required): Player UUID
+- `type` (optional): Transaction type (DEPOSIT, WITHDRAW)
+- `status` (optional): Transaction status (PENDING, IN_PROGRESS, SUCCESS, FAILED)
+- `bettingSiteId` (optional): Filter by betting site ID
+- `minAmount` (optional): Minimum transaction amount
+- `maxAmount` (optional): Maximum transaction amount
+- `startDate` (optional): Start date (YYYY-MM-DD)
+- `endDate` (optional): End date (YYYY-MM-DD)
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20)
+
+**Example Request:**
+```
+GET /transactions?playerUuid=61014869-9a8a-43d0-9f1e-28bc6e418cdc&type=DEPOSIT&minAmount=50&maxAmount=200&bettingSiteId=1&startDate=2025-10-01&endDate=2025-10-31
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Transactions retrieved successfully",
+  "transactions": [
+    {
+      "id": 1,
+      "transactionUuid": "98bc140c-99ed-4406-b803-f8a0051f0693",
+      "type": "DEPOSIT",
+      "amount": "100.00",
+      "currency": "USD",
+      "status": "Pending",
+      "depositBank": {
+        "id": 1,
+        "bankName": "Chase Bank",
+        "accountNumber": "1234567890"
+      },
+      "withdrawalBank": null,
+      "withdrawalAddress": null,
+      "screenshotUrl": null,
+      "bettingSiteId": 1,
+      "playerSiteId": "player123",
+      "requestedAt": "2025-10-25T12:00:00.000Z",
+      "assignedAgent": null,
+      "adminNotes": null,
+      "agentNotes": null,
+      "rating": null,
+      "createdAt": "2025-10-25T12:00:00.000Z",
+      "updatedAt": "2025-10-25T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "pages": 1
+  },
+  "filters": {
+    "type": "DEPOSIT",
+    "status": null,
+    "bettingSiteId": "1",
+    "minAmount": "50",
+    "maxAmount": "200",
+    "startDate": "2025-10-01",
+    "endDate": "2025-10-31"
+  },
+  "playerInfo": {
+    "playerUuid": "61014869-9a8a-43d0-9f1e-28bc6e418cdc",
+    "telegramUsername": "player123",
+    "isTemporary": false
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "error": "Query validation failed",
+  "details": ["\"playerUuid\" is required"]
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player profile not found",
+  "message": "No player found with this UUID"
+}
+```
+
+---
+
+### 5. Basic Player Registration (Legacy)
+
+**Endpoint:** `POST /players`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "telegramId": "123456789",
+  "telegramUsername": "player123",
+  "languageCode": "en"
+}
+```
+
+**Success Response (201):**
+```json
+{
+  "message": "Player created successfully",
+  "player": {
+    "id": 1,
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "123456789",
+    "telegramUsername": "player123",
+    "languageCode": "en",
+    "lastActive": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 6. Get Player by UUID
+
+**Endpoint:** `GET /players/:playerUuid`
+
+**Success Response (200):**
+```json
+{
+  "player": {
+    "id": 1,
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "123456789",
+    "telegramUsername": "player123",
+    "languageCode": "en",
+    "lastActive": "2025-10-25T12:00:00.000Z",
+    "createdAt": "2025-10-25T12:00:00.000Z",
+    "updatedAt": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "error": "Player profile not found"
+}
+```
+
+---
+
+### 7. Update Player Profile
+
+**Endpoint:** `PUT /players/:playerUuid`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "telegramId": "987654321",
+  "telegramUsername": "updatedplayer",
+  "languageCode": "es"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "message": "Player profile updated successfully",
+  "player": {
+    "id": 1,
+    "playerUuid": "e804346f-e513-4ae2-9cfa-7584c3ea1698",
+    "telegramId": "987654321",
+    "telegramUsername": "updatedplayer",
+    "languageCode": "es",
+    "lastActive": "2025-10-25T12:00:00.000Z"
+  }
+}
+```
+
+---
+
 ## Transaction Management
 
 ### 1. Create Deposit Transaction (JSON)
