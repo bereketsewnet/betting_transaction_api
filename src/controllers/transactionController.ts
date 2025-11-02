@@ -281,7 +281,7 @@ export class TransactionController {
       // Find player profile by temp ID (telegramId starting with 'temp_')
       const playerProfile = await PlayerProfile.findOne({
         where: {
-          telegramId: `temp_${tempId}`,
+          telegramId: `${tempId}`,
         },
       });
 

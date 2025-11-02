@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { PlayerProfile, Language, Template, User, Transaction, TransactionStatus, DepositBank, WithdrawalBank } from '../models';
+import { PlayerProfile, Language, Template, User, Transaction, TransactionStatus, DepositBank, WithdrawalBank, Role } from '../models';
 import { validate, schemas } from '../middlewares/validation';
 import { telegramService } from '../services/telegramService';
 import Joi from 'joi';
@@ -28,15 +28,25 @@ export class PlayerController {
         const bcrypt = require('bcrypt');
         const passwordHash = await bcrypt.hash(password, 10);
         
-        // Get player role ID (assuming role ID 9 is for players)
-        const playerRoleId = 9;
+        // Get player role ID by querying the database
+        const playerRole = await Role.findOne({
+          where: { name: 'player' },
+        });
+
+        if (!playerRole) {
+          res.status(500).json({ 
+            error: 'Player role not found',
+            message: 'Unable to find player role in database. Please ensure roles are properly seeded.'
+          });
+          return;
+        }
         
         // Create user account first
         userAccount = await User.create({
           username,
           email,
           passwordHash,
-          roleId: playerRoleId,
+          roleId: playerRole.id,
           displayName: displayName || username,
           phone: phone || null,
           isActive: true,

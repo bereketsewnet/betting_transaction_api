@@ -2,26 +2,30 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('roles', [
-      {
-        name: 'admin',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        name: 'agent',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        name: 'player',
-        createdAt: new Date(),
-        updatedAt: new Date()
+    const roles = ['admin', 'agent', 'player'];
+
+    for (const name of roles) {
+      // Check if the role already exists
+      const [existing] = await queryInterface.sequelize.query(
+        `SELECT id FROM roles WHERE name = :name LIMIT 1;`,
+        { replacements: { name } }
+      );
+
+      if (existing.length === 0) {
+        // Insert role if not exists
+        await queryInterface.bulkInsert('roles', [
+          {
+            name,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ], {});
       }
-    ], {});
+    }
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('roles', null, {});
+    // Remove roles safely
+    await queryInterface.bulkDelete('roles', { name: ['admin', 'agent', 'player'] });
   }
 };

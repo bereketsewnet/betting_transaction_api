@@ -26,6 +26,7 @@ const corsOptions = {
     const allowedOrigins = [
       process.env.CORS_ORIGIN || 'http://localhost:5173',
       process.env.FRONT_END_URL || 'http://localhost:5173',
+      process.env.TELEGRAM_BOT_URL || 'https://t.me/betting_payment_manager_bot',
       'http://localhost:3000',
       'http://localhost:5173'
     ];
