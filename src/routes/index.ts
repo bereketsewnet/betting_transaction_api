@@ -43,6 +43,7 @@ router.get('/transactions/:id', optionalAuth, TransactionController.getTransacti
 
 // Admin routes
 router.get('/admin/transactions', authenticateToken, requireAdmin, getTransactionsValidation, AdminController.getTransactions);
+router.delete('/admin/transactions/:id', authenticateToken, requireAdmin, AdminController.deleteTransaction);
 router.put('/admin/transactions/:id/assign', authenticateToken, requireAdmin, assignTransactionValidation, AdminController.assignTransaction);
 router.put('/admin/transactions/:id/status', authenticateToken, requireAdmin, updateTransactionStatusValidation, AdminController.updateTransactionStatus);
 router.get('/admin/agents', authenticateToken, requireAdmin, AdminController.getAgents);

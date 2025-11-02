@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { DepositBank, WithdrawalBank, Language, Template } from '../models';
+import { DepositBank, WithdrawalBank, Language, Template, Transaction } from '../models';
 import { validate, schemas } from '../middlewares/validation';
 import { AuditLog } from '../models';
 
@@ -173,6 +173,20 @@ export class AdminConfigController {
         return;
       }
 
+      // Check if there are transactions using this deposit bank
+      const transactionsCount = await Transaction.count({
+        where: { depositBankId: parseInt(id) },
+      });
+
+      if (transactionsCount > 0) {
+        res.status(400).json({
+          error: 'Cannot delete deposit bank',
+          message: `This deposit bank is being used by ${transactionsCount} transaction(s) and cannot be deleted. Please transfer or remove the transactions first, or deactivate the bank instead.`,
+          transactionsCount,
+        });
+        return;
+      }
+
       await bank.destroy();
 
       // Create audit log
@@ -186,8 +200,18 @@ export class AdminConfigController {
       });
 
       res.json({ message: 'Deposit bank deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete deposit bank error:', error);
+      
+      // Handle foreign key constraint error specifically
+      if (error.name === 'SequelizeForeignKeyConstraintError' || error.parent?.code === 'ER_ROW_IS_REFERENCED_2') {
+        res.status(400).json({
+          error: 'Cannot delete deposit bank',
+          message: 'This deposit bank is being used by one or more transactions and cannot be deleted. Please transfer or remove the transactions first, or deactivate the bank instead.',
+        });
+        return;
+      }
+      
       res.status(500).json({ error: 'Failed to delete deposit bank' });
     }
   }
@@ -276,6 +300,20 @@ export class AdminConfigController {
         return;
       }
 
+      // Check if there are transactions using this withdrawal bank
+      const transactionsCount = await Transaction.count({
+        where: { withdrawalBankId: parseInt(id) },
+      });
+
+      if (transactionsCount > 0) {
+        res.status(400).json({
+          error: 'Cannot delete withdrawal bank',
+          message: `This withdrawal bank is being used by ${transactionsCount} transaction(s) and cannot be deleted. Please transfer or remove the transactions first, or deactivate the bank instead.`,
+          transactionsCount,
+        });
+        return;
+      }
+
       await bank.destroy();
 
       // Create audit log
@@ -289,8 +327,18 @@ export class AdminConfigController {
       });
 
       res.json({ message: 'Withdrawal bank deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete withdrawal bank error:', error);
+      
+      // Handle foreign key constraint error specifically
+      if (error.name === 'SequelizeForeignKeyConstraintError' || error.parent?.code === 'ER_ROW_IS_REFERENCED_2') {
+        res.status(400).json({
+          error: 'Cannot delete withdrawal bank',
+          message: 'This withdrawal bank is being used by one or more transactions and cannot be deleted. Please transfer or remove the transactions first, or deactivate the bank instead.',
+        });
+        return;
+      }
+      
       res.status(500).json({ error: 'Failed to delete withdrawal bank' });
     }
   }

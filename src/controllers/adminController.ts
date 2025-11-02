@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Transaction, TransactionStatus, User, PlayerProfile, DepositBank, WithdrawalBank, BettingSite, AuditLog, Role } from '../models';
+import { Transaction, TransactionStatus, User, PlayerProfile, DepositBank, WithdrawalBank, BettingSite, AuditLog, Role, TransactionEvidence, TransactionComment } from '../models';
 import { validate, schemas, validateQuery } from '../middlewares/validation';
 import { socketService } from '../services/socketService';
 import { telegramService } from '../services/telegramService';
@@ -305,9 +305,22 @@ export class AdminController {
    */
   static async getAgents(req: Request, res: Response): Promise<void> {
     try {
+      // Get agent role ID by querying the database
+      const agentRole = await Role.findOne({
+        where: { name: 'agent' },
+      });
+
+      if (!agentRole) {
+        res.status(500).json({ 
+          error: 'Agent role not found',
+          message: 'Unable to find agent role in database. Please ensure roles are properly seeded.'
+        });
+        return;
+      }
+
       const agents = await User.findAll({
         where: {
-          roleId: 2, // agent role
+          roleId: agentRole.id,
           isActive: true,
         },
         include: [{
@@ -359,6 +372,122 @@ export class AdminController {
     } catch (error) {
       console.error('Get agents error:', error);
       res.status(500).json({ error: 'Failed to get agents' });
+    }
+  }
+
+  /**
+   * Delete a transaction (admin only)
+   */
+  static async deleteTransaction(req: Request, res: Response): Promise<void> {
+    console.log(`DELETE /admin/transactions/:id called with id: ${req.params.id}`);
+    try {
+      const { id } = req.params;
+      const transactionId = parseInt(id, 10);
+      
+      if (isNaN(transactionId)) {
+        res.status(400).json({ 
+          error: 'Invalid transaction ID',
+          message: 'Transaction ID must be a valid number'
+        });
+        return;
+      }
+      
+      console.log(`Attempting to delete transaction with ID: ${transactionId}`);
+      
+      // Find transaction first (simple lookup to ensure it exists)
+      const transaction = await Transaction.findByPk(transactionId);
+
+      if (!transaction) {
+        console.log(`Transaction with ID ${transactionId} not found in database`);
+        res.status(404).json({ 
+          error: 'Transaction not found',
+          message: `Transaction with ID ${transactionId} does not exist`
+        });
+        return;
+      }
+      
+      console.log(`Transaction found: ${transaction.id} - ${transaction.transactionUuid}`);
+
+      // Get related data separately if needed
+      const transactionData = transaction.toJSON();
+      
+      // Get related records for deletion
+      const comments = await TransactionComment.findAll({
+        where: { transactionId: transaction.id },
+      });
+
+      const evidence = await TransactionEvidence.findAll({
+        where: { transactionId: transaction.id },
+      });
+
+      // Get player profile for notifications
+      const playerProfile = await PlayerProfile.findByPk(transaction.playerProfileId);
+
+      // Delete related records first (comments and evidence)
+      if (comments.length > 0) {
+        await TransactionComment.destroy({
+          where: { transactionId: transaction.id },
+        });
+      }
+
+      if (evidence.length > 0) {
+        await TransactionEvidence.destroy({
+          where: { transactionId: transaction.id },
+        });
+      }
+
+      // Delete the transaction
+      await transaction.destroy();
+
+      // Create audit log
+      if ((req as any).user?.id) {
+        await AuditLog.create({
+          actorUserId: (req as any).user.id,
+          entity: 'Transaction',
+          entityId: parseInt(id),
+          action: 'DELETED',
+          oldValue: transactionData,
+          ipAddress: req.ip,
+        });
+      }
+
+      // Send socket notification
+      try {
+        // Emit transaction deleted event to all connected admins
+        (socketService as any).io?.emit('transaction:deleted', {
+          transactionId: transaction.id,
+          transactionUuid: transaction.transactionUuid,
+          type: 'transaction_deleted',
+          message: `Transaction ${transaction.transactionUuid} has been deleted`,
+        });
+      } catch (socketError) {
+        console.warn('Socket notification failed:', socketError);
+      }
+
+      // Telegram notification can be added later if needed
+      // For now, transaction deletion is logged in audit logs
+
+      res.json({ 
+        message: 'Transaction deleted successfully',
+        transactionUuid: transaction.transactionUuid,
+      });
+    } catch (error: any) {
+      console.error('Delete transaction error:', error);
+      
+      // Handle foreign key constraint errors
+      if (error.name === 'SequelizeForeignKeyConstraintError') {
+        res.status(400).json({
+          error: 'Cannot delete transaction',
+          message: 'This transaction has related records that prevent deletion. Please contact system administrator.',
+        });
+        return;
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to delete transaction',
+        message: 'Internal server error while deleting transaction',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 }
