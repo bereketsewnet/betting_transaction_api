@@ -161,6 +161,7 @@ export class AuthController {
 // Export validation middleware for routes
 export const loginValidation = validate(schemas.login);
 export const refreshTokenValidation = validate(schemas.refreshToken);
+export const logoutValidation = validate(schemas.logout);
 export const changePasswordValidation = validate(
   require('joi').object({
     currentPassword: require('joi').string().required(),

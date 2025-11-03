@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AuthController, loginValidation, refreshTokenValidation, changePasswordValidation } from '../controllers/authController';
+import { AuthController, loginValidation, refreshTokenValidation, logoutValidation, changePasswordValidation } from '../controllers/authController';
 import { PlayerController, createPlayerValidation, registerPlayerValidation, updatePlayerValidation } from '../controllers/playerController';
 import { TransactionController, createTransactionValidation, getTransactionsByPlayerValidation } from '../controllers/transactionController';
 import { AdminController, assignTransactionValidation, updateTransactionStatusValidation, getTransactionsValidation } from '../controllers/adminController';
@@ -17,7 +17,7 @@ const router = Router();
 // Auth routes
 router.post('/auth/login', authRateLimit, loginValidation, AuthController.login);
 router.post('/auth/refresh', refreshTokenValidation, AuthController.refresh);
-router.post('/auth/logout', refreshTokenValidation, AuthController.logout);
+router.post('/auth/logout', logoutValidation, AuthController.logout);
 router.get('/auth/profile', authenticateToken, AuthController.profile);
 router.put('/auth/change-password', authenticateToken, changePasswordValidation, AuthController.changePassword);
 

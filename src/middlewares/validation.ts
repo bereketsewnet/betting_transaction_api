@@ -52,6 +52,10 @@ export const schemas = {
     refreshToken: Joi.string().required(),
   }),
 
+  logout: Joi.object({
+    refreshToken: Joi.string().optional(),
+  }),
+
   createPlayer: Joi.object({
     telegramId: Joi.string().optional(),
     telegramUsername: Joi.string().optional(),
