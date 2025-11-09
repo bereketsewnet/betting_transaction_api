@@ -136,6 +136,102 @@ export class AdminController {
   }
 
   /**
+   * Get recent transactions (last 24 hours) - Admin only
+   */
+  static async getRecentTransactions(req: Request, res: Response): Promise<void> {
+    try {
+      const { page = 1, limit = 20 } = req.query;
+      const offset = (Number(page) - 1) * Number(limit);
+
+      // Calculate 24 hours ago
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+
+      const { count, rows: transactions } = await Transaction.findAndCountAll({
+        where: {
+          createdAt: {
+            [Op.gte]: twentyFourHoursAgo,
+          },
+        },
+        include: [
+          {
+            model: PlayerProfile,
+            as: 'playerProfile',
+          },
+          {
+            model: TransactionStatus,
+            as: 'status',
+          },
+          {
+            model: DepositBank,
+            as: 'depositBank',
+            required: false,
+          },
+          {
+            model: WithdrawalBank,
+            as: 'withdrawalBank',
+            required: false,
+          },
+          {
+            model: User,
+            as: 'assignedAgent',
+            required: false,
+            attributes: ['id', 'username', 'displayName'],
+          },
+          {
+            model: BettingSite,
+            as: 'bettingSite',
+            required: false,
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit: Number(limit),
+        offset,
+      });
+
+      res.json({
+        transactions: transactions.map(transaction => ({
+          id: transaction.id,
+          transactionUuid: transaction.transactionUuid,
+          type: transaction.type,
+          amount: transaction.amount,
+          currency: transaction.currency,
+          status: transaction.status?.code || 'PENDING',
+          statusName: transaction.status?.name || 'Pending',
+          playerProfile: transaction.playerProfile ? {
+            id: transaction.playerProfile.id,
+            playerUuid: transaction.playerProfile.playerUuid,
+            telegramId: transaction.playerProfile.telegramId,
+            telegramUsername: transaction.playerProfile.telegramUsername,
+            displayName: transaction.playerProfile.displayName,
+          } : null,
+          depositBank: transaction.depositBank,
+          withdrawalBank: transaction.withdrawalBank,
+          withdrawalAddress: transaction.withdrawalAddress,
+          bettingSite: transaction.bettingSite,
+          playerSiteId: transaction.playerSiteId,
+          assignedAgent: transaction.assignedAgent,
+          requestedAt: transaction.requestedAt,
+          createdAt: transaction.createdAt,
+          updatedAt: transaction.updatedAt,
+        })),
+        pagination: {
+          total: count,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(count / Number(limit)),
+        },
+        filters: {
+          dateRange: 'last24hours',
+        },
+      });
+    } catch (error: any) {
+      console.error('Error fetching recent transactions:', error);
+      res.status(500).json({ error: 'Failed to fetch recent transactions' });
+    }
+  }
+
+  /**
    * Assign transaction to agent
    */
   static async assignTransaction(req: Request, res: Response): Promise<void> {
