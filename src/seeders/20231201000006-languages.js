@@ -5,21 +5,14 @@ module.exports = {
     const languages = [
       {
         code: 'en',
-        name: 'English',
+        name: 'English (US)',
         is_active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        code: 'es',
-        name: 'Spanish',
-        is_active: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        code: 'fr',
-        name: 'French',
+        code: 'am',
+        name: 'Amharic (Ethiopia)',
         is_active: true,
         createdAt: new Date(),
         updatedAt: new Date()

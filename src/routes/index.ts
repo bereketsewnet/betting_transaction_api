@@ -23,6 +23,7 @@ router.put('/auth/change-password', authenticateToken, changePasswordValidation,
 
 // Public config routes
 router.get('/config/welcome', ConfigController.getWelcomeMessage);
+router.get('/config/template', ConfigController.getTemplate); // Get template by key and lang
 router.get('/config/deposit-banks', ConfigController.getDepositBanks);
 router.get('/config/withdrawal-banks', ConfigController.getWithdrawalBanks);
 router.get('/config/languages', ConfigController.getLanguages);

@@ -34,6 +34,58 @@ export class ConfigController {
   }
 
   /**
+   * Get template by key and language (with fallback to English)
+   */
+  static async getTemplate(req: Request, res: Response): Promise<void> {
+    try {
+      const { key, lang = 'en' } = req.query;
+
+      if (!key) {
+        res.status(400).json({ error: 'Template key is required' });
+        return;
+      }
+
+      // Try to get template for requested language
+      let template = await Template.findOne({
+        where: {
+          languageCode: lang as string,
+          keyName: key as string,
+        },
+      });
+
+      // If not found and language is not English, fallback to English
+      if (!template && lang !== 'en') {
+        template = await Template.findOne({
+          where: {
+            languageCode: 'en',
+            keyName: key as string,
+          },
+        });
+      }
+
+      if (!template) {
+        res.status(404).json({ 
+          error: 'Template not found',
+          key: key as string,
+          language: lang as string,
+          fallbackUsed: false
+        });
+        return;
+      }
+
+      res.json({
+        key: template.keyName,
+        language: template.languageCode,
+        content: template.content,
+        fallbackUsed: template.languageCode === 'en' && lang !== 'en',
+      });
+    } catch (error) {
+      console.error('Get template error:', error);
+      res.status(500).json({ error: 'Failed to get template' });
+    }
+  }
+
+  /**
    * Get active deposit banks
    */
   static async getDepositBanks(req: Request, res: Response): Promise<void> {
