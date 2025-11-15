@@ -28,7 +28,8 @@ const corsOptions = {
       process.env.FRONT_END_URL || 'http://localhost:5173',
       process.env.TELEGRAM_BOT_URL || 'https://t.me/betting_payment_manager_bot',
       'http://localhost:3000',
-      'http://localhost:5173'
+      'http://localhost:5173',
+      'http://157.173.127.142:5174'
     ];
     
     if (allowedOrigins.includes(origin)) {

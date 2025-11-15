@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('transaction_statuses', [
+    const statuses = [
       {
         code: 'PENDING',
         label: 'Pending',
@@ -33,7 +33,21 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date()
       }
-    ], {});
+    ];
+
+    // Check which statuses already exist
+    const existingStatuses = await queryInterface.sequelize.query(
+      `SELECT code FROM transaction_statuses`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const existingCodes = existingStatuses.map(status => status.code);
+
+    // Filter out statuses that already exist
+    const statusesToInsert = statuses.filter(status => !existingCodes.includes(status.code));
+
+    if (statusesToInsert.length > 0) {
+      await queryInterface.bulkInsert('transaction_statuses', statusesToInsert, {});
+    }
   },
 
   async down(queryInterface, Sequelize) {

@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('withdrawal_banks', [
+    const banks = [
       {
         bank_name: 'Chase Bank',
         required_fields: JSON.stringify([
@@ -39,7 +39,21 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date()
       }
-    ], {});
+    ];
+
+    // Check which banks already exist
+    const existingBanks = await queryInterface.sequelize.query(
+      `SELECT bank_name FROM withdrawal_banks`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const existingBankNames = existingBanks.map(bank => bank.bank_name);
+
+    // Filter out banks that already exist
+    const banksToInsert = banks.filter(bank => !existingBankNames.includes(bank.bank_name));
+
+    if (banksToInsert.length > 0) {
+      await queryInterface.bulkInsert('withdrawal_banks', banksToInsert, {});
+    }
   },
 
   async down(queryInterface, Sequelize) {

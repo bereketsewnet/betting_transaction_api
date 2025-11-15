@@ -127,8 +127,9 @@ class FileUploadService {
   private async uploadLocally(file: Express.Multer.File): Promise<UploadResult> {
     // When using diskStorage, the file is already saved to disk
     // We just need to return the file info
+    // Store only relative path - frontend will convert to absolute URL
     const filename = path.basename(file.path);
-    const url = `${process.env.API_BASE_URL || 'http://localhost:3000'}/uploads/${filename}`;
+    const url = `/uploads/${filename}`;
     
     try {
       return {

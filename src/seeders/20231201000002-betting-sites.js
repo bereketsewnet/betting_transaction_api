@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.bulkInsert('betting_sites', [
+    const bettingSites = [
       {
         name: 'Arada Betting',
         description: 'Arada Betting Platform - Sports betting and casino games',
@@ -67,7 +67,21 @@ module.exports = {
         created_at: new Date(),
         updated_at: new Date(),
       },
-    ]);
+    ];
+
+    // Check which sites already exist
+    const existingSites = await queryInterface.sequelize.query(
+      `SELECT name FROM betting_sites`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const existingNames = existingSites.map(site => site.name);
+
+    // Filter out sites that already exist
+    const sitesToInsert = bettingSites.filter(site => !existingNames.includes(site.name));
+
+    if (sitesToInsert.length > 0) {
+      await queryInterface.bulkInsert('betting_sites', sitesToInsert);
+    }
   },
 
   down: async (queryInterface, Sequelize) => {

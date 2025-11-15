@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('templates', [
+    const templates = [
       {
         language_code: 'en',
         key_name: 'welcome_message',
@@ -31,7 +31,23 @@ module.exports = {
         createdAt: new Date(),
         updatedAt: new Date()
       }
-    ], {});
+    ];
+
+    // Check which templates already exist (composite key: language_code + key_name)
+    const existingTemplates = await queryInterface.sequelize.query(
+      `SELECT language_code, key_name FROM templates`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const existingTemplateKeys = existingTemplates.map(t => `${t.language_code}:${t.key_name}`);
+
+    // Filter out templates that already exist
+    const templatesToInsert = templates.filter(t => 
+      !existingTemplateKeys.includes(`${t.language_code}:${t.key_name}`)
+    );
+
+    if (templatesToInsert.length > 0) {
+      await queryInterface.bulkInsert('templates', templatesToInsert, {});
+    }
   },
 
   async down(queryInterface, Sequelize) {
