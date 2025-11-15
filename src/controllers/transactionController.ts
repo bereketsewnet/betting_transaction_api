@@ -223,12 +223,20 @@ export class TransactionController {
 
       // Check access permissions
       const userRole = req.user?.role;
-      const isOwner = transaction.playerProfile?.playerUuid === req.query.player_uuid;
+      const playerUuid = req.query.player_uuid as string;
+      const isOwner = transaction.playerProfile?.playerUuid === playerUuid;
       const isAssignedAgent = transaction.assignedAgentId === req.user?.userId;
       const isAdminOrAgent = ['admin', 'agent'].includes(userRole || '');
 
+      // Allow access if:
+      // 1. User is the owner (playerUuid matches) - works for both authenticated and unauthenticated users
+      // 2. User is admin or agent
+      // 3. User is the assigned agent
       if (!isOwner && !isAdminOrAgent && !isAssignedAgent) {
-        res.status(403).json({ error: 'Access denied' });
+        res.status(403).json({ 
+          error: 'Access denied',
+          message: 'You do not have permission to view this transaction. Please provide the correct player UUID.'
+        });
         return;
       }
 

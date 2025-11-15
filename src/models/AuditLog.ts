@@ -75,6 +75,8 @@ AuditLog.init(
   {
     sequelize,
     tableName: 'audit_logs',
-    timestamps: false,
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: false,
   }
 );

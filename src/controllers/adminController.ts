@@ -239,6 +239,18 @@ export class AdminController {
       const { id } = req.params;
       const { agentId } = req.body;
 
+      // Validate agentId
+      if (!agentId) {
+        res.status(400).json({ error: 'Agent ID is required' });
+        return;
+      }
+
+      const agentIdNum = parseInt(agentId.toString(), 10);
+      if (isNaN(agentIdNum)) {
+        res.status(400).json({ error: 'Invalid agent ID format' });
+        return;
+      }
+
       const transaction = await Transaction.findByPk(id, {
         include: [
           {
@@ -258,7 +270,7 @@ export class AdminController {
         return;
       }
 
-      const agent = await User.findByPk(agentId, {
+      const agent = await User.findByPk(agentIdNum, {
         include: [{
           model: Role,
           as: 'role',
@@ -271,22 +283,28 @@ export class AdminController {
       }
 
       const oldAgentId = transaction.assignedAgentId;
-      await transaction.update({ assignedAgentId: agentId });
+      await transaction.update({ assignedAgentId: agentIdNum });
 
       // Create audit log
-      await AuditLog.create({
-        actorUserId: req.user!.userId,
-        entity: 'Transaction',
-        entityId: transaction.id,
-        action: 'ASSIGNED',
-        oldValue: { assignedAgentId: oldAgentId },
-        newValue: { assignedAgentId: agentId },
-        ipAddress: req.ip,
-      });
+      try {
+        await AuditLog.create({
+          actorUserId: req.user!.userId,
+          entity: 'Transaction',
+          entityId: transaction.id,
+          action: 'ASSIGNED',
+          oldValue: oldAgentId ? { assignedAgentId: oldAgentId } : null,
+          newValue: { assignedAgentId: agentIdNum },
+          ipAddress: req.ip || 'unknown',
+          createdAt: new Date(),
+        } as any);
+      } catch (auditError) {
+        // Log audit error but don't fail the assignment
+        console.error('Audit log creation failed:', auditError);
+      }
 
       // Notify agent via Socket.IO
       if (socketService) {
-        socketService.notifyAgent(agentId, {
+        socketService.notifyAgent(agentIdNum, {
           type: 'transaction_assigned',
           transactionId: transaction.id,
           transactionUuid: transaction.transactionUuid,
@@ -305,7 +323,7 @@ export class AdminController {
         transaction: {
           id: transaction.id,
           transactionUuid: transaction.transactionUuid,
-          assignedAgentId: agentId,
+          assignedAgentId: agentIdNum,
           assignedAgent: {
             id: agent.id,
             username: agent.username,
@@ -313,9 +331,13 @@ export class AdminController {
           },
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Assign transaction error:', error);
-      res.status(500).json({ error: 'Failed to assign transaction' });
+      console.error('Error details:', error.message, error.stack);
+      res.status(500).json({ 
+        error: 'Failed to assign transaction',
+        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   }
 
