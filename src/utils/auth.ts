@@ -158,6 +158,7 @@ export class AuthService {
           [require('sequelize').Op.or]: [
             { username },
             { email: username },
+            { phone: username },
           ],
           isActive: true,
         },

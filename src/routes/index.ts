@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AuthController, loginValidation, refreshTokenValidation, logoutValidation, changePasswordValidation } from '../controllers/authController';
+import { AuthController, loginValidation, refreshTokenValidation, logoutValidation, changePasswordValidation, telegramLoginValidation } from '../controllers/authController';
 import { PlayerController, createPlayerValidation, registerPlayerValidation, updatePlayerValidation } from '../controllers/playerController';
 import { TransactionController, createTransactionValidation, getTransactionsByPlayerValidation } from '../controllers/transactionController';
 import { AdminController, assignTransactionValidation, updateTransactionStatusValidation, getTransactionsValidation } from '../controllers/adminController';
@@ -15,6 +15,7 @@ import { fileUploadService } from '../services/fileUpload';
 const router = Router();
 
 // Auth routes
+router.post('/auth/telegram-login', authRateLimit, telegramLoginValidation, AuthController.telegramLogin);
 router.post('/auth/login', authRateLimit, loginValidation, AuthController.login);
 router.post('/auth/refresh', refreshTokenValidation, AuthController.refresh);
 router.post('/auth/logout', logoutValidation, AuthController.logout);

@@ -28,15 +28,29 @@ module.exports = {
       },
       {
         language_code: 'en',
-        key_name: 'button_register',
-        content: '📝 Register',
+        key_name: 'button_phone_login',
+        content: '📱 Login/Register',
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         language_code: 'en',
-        key_name: 'button_login',
-        content: '🔐 Login',
+        key_name: 'button_email_login',
+        content: '📧 Login with Email',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        language_code: 'en',
+        key_name: 'login_share_contact',
+        content: '📱 Please click the button below to share your contact number for secure login/registration.',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        language_code: 'en',
+        key_name: 'button_share_contact',
+        content: '📱 Share Contact',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -587,15 +601,29 @@ module.exports = {
       },
       {
         language_code: 'am',
-        key_name: 'button_register',
-        content: '📝 ምዝግብ',
+        key_name: 'button_phone_login',
+        content: '📱 ይግቡ/ይመዝገቡ',
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         language_code: 'am',
-        key_name: 'button_login',
-        content: '🔐 ግባ',
+        key_name: 'button_email_login',
+        content: '📧 በኢሜይል ይግቡ',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        language_code: 'am',
+        key_name: 'login_share_contact',
+        content: '📱 ለደህንነቱ የተጠበቀ መግቢያ/ምዝገባ ስልክ ቁጥርዎን ለማጋራት እባክዎ ከታች ያለውን ቁልፍ ይጫኑ።',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        language_code: 'am',
+        key_name: 'button_share_contact',
+        content: '📱 ስልክ ቁጥር አጋራ',
         createdAt: new Date(),
         updatedAt: new Date()
       },
