@@ -378,15 +378,18 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Check if user has any transactions or player profiles
-    const hasTransactions = await PlayerProfile.findOne({
+    // Check if user has any player profiles
+    const playerProfile = await PlayerProfile.findOne({
       where: { userId: user.id }
     });
 
-    if (hasTransactions) {
-      res.status(400).json({
-        error: 'Cannot delete user',
-        message: 'User has associated data and cannot be deleted'
+    if (playerProfile) {
+      // Soft delete: keep the user but set isActive to false
+      await user.update({ isActive: false });
+      
+      res.json({
+        message: 'User deactivated successfully (associated with player profile)',
+        warning: 'User was deactivated instead of deleted because they have associated data.'
       });
       return;
     }
