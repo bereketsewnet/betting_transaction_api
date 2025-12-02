@@ -102,27 +102,8 @@ class TelegramService {
    * Send welcome message to new player
    */
   async sendWelcomeMessage(telegramId: string, languageCode: string = 'en'): Promise<boolean> {
-    const welcomeMessages: { [key: string]: string } = {
-      en: 'Welcome to Betting Payment Manager! 🎉\n\n' +
-          'I\'m here to help you with your deposit and withdrawal transactions. You can:\n\n' +
-          '💰 Make deposits\n' +
-          '💸 Request withdrawals\n' +
-          '📊 Check transaction status\n\n' +
-          'Type /help for more information or /start to begin!',
-      es: '¡Bienvenido al Gestor de Pagos de Apuestas! 🎉\n\n' +
-          'Estoy aquí para ayudarte con tus transacciones de depósito y retiro. Puedes:\n\n' +
-          '💰 Hacer depósitos\n' +
-          '💸 Solicitar retiros\n' +
-          '📊 Verificar el estado de transacciones\n\n' +
-          '¡Escribe /help para más información o /start para comenzar!',
-    };
-
-    const message = welcomeMessages[languageCode] || welcomeMessages.en;
-
-    return this.sendMessage({
-      chatId: telegramId,
-      text: message,
-    });
+    // User requested to remove this welcome message
+    return true;
   }
 
   /**

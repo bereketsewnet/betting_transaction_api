@@ -13,7 +13,7 @@ export class AgentController {
    */
   static async getTasks(req: Request, res: Response): Promise<void> {
     try {
-      const { status, page = 1, limit = 20 } = req.query;
+      const { status, dateRange, page = 1, limit = 20 } = req.query;
       const agentId = (req as any).user?.userId;
 
       if (!agentId) {
@@ -29,6 +29,14 @@ export class AgentController {
         if (statusRecord) {
           whereClause.statusId = statusRecord.id;
         }
+      }
+
+      if (dateRange) {
+        const [startDate, endDate] = (dateRange as string).split(',');
+        whereClause.createdAt = {
+          [Op.gte]: new Date(startDate),
+          [Op.lte]: new Date(endDate),
+        };
       }
 
       const { count, rows: transactions } = await Transaction.findAndCountAll({
@@ -356,6 +364,7 @@ export const processTransactionValidation = validate(schemas.processTransaction)
 export const getTasksValidation = validateQuery(
   Joi.object({
     status: Joi.string().optional(),
+    dateRange: Joi.string().optional(),
     page: Joi.number().min(1).default(1),
     limit: Joi.number().min(1).max(100).default(20),
   })

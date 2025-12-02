@@ -83,7 +83,7 @@ export const schemas = {
     playerUuid: Joi.string().uuid().required(),
     type: Joi.string().valid('DEPOSIT', 'WITHDRAW').required(),
     amount: Joi.number().positive().required(),
-    currency: Joi.string().length(3).default('USD'),
+    currency: Joi.string().length(3).default('ETB'),
     depositBankId: Joi.number().when('type', {
       is: 'DEPOSIT',
       then: Joi.required(),
@@ -113,7 +113,7 @@ export const schemas = {
   }),
 
   processTransaction: Joi.object({
-    status: Joi.string().valid('SUCCESS', 'FAILED', 'CANCELLED').required(),
+    status: Joi.string().valid('IN_PROGRESS', 'SUCCESS', 'FAILED', 'CANCELLED').required(),
     agentNotes: Joi.string().optional(),
     evidenceUrl: Joi.string().uri().optional(),
   }),
